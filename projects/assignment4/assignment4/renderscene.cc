@@ -29,7 +29,6 @@ RenderScene::~RenderScene()
 	delete this->root;
 	delete this->camera;
 	delete this->light;
-	delete this->rigidbody_texture;
 	
 	for (std::map<int, RigidBody*>::iterator it = this->object_list.begin(); it != this->object_list.end(); it++){
 		delete it->second;
@@ -112,7 +111,7 @@ RenderScene::Open()
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
-		//glEnable(GL_CULL_FACE);
+		glEnable(GL_CULL_FACE);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
 		ShaderManager::Instance()->AddShaderProgram("shaders/simple_vs.glsl", "shaders/simple_fs.glsl", "main");
@@ -122,9 +121,6 @@ RenderScene::Open()
 		//Objects
 		this->root = new Root;
 		this->camera = new Camera;
-		
-		this->rigidbody_texture = new Texture;
-		this->rigidbody_texture->LoadTexture("textures/cube.png");
 
 		//plane
 		int width, height;
@@ -214,7 +210,7 @@ void RenderScene::AddPlaneToScene(bool is_kinematic, Vector3 position, float deg
 	rigidbody->Rotate(degrees, axis);
 
 	rigidbody->SetMesh(this->plane_mesh);
-	rigidbody->SetTexture(this->rigidbody_texture);
+	//rigidbody->SetTexture(this->rigidbody_texture);
 	rigidbody->heightmap = this->heightmap;
 
 	this->root->AddChildNode(rigidbody);

@@ -56,7 +56,6 @@ private:
 	Root* root;
 	Camera* camera;
 	Mesh* plane_mesh;
-	Texture* rigidbody_texture;
 	Texture* heightmap;
 	Light* light;
 	

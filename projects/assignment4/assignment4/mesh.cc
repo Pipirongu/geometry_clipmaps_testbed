@@ -31,8 +31,8 @@ void Mesh::Draw()
 	//Bind this mesh VAO
 	glBindVertexArray(this->vao);
 	//Draw the triangles using the index buffer(EBO)
-	//glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, this->vertices.size());
+	glDrawElements(GL_TRIANGLE_STRIP, this->indices.size(), GL_UNSIGNED_INT, 0);
+	//glDrawArrays(GL_TRIANGLE_STRIP, 0, this->vertices.size());
 	//Unbind the VAO
 	glBindVertexArray(0);
 }
@@ -46,16 +46,51 @@ void Mesh::GenerateNestedRegularGrid(int width, int height)
 			Vector3 vertex1(x, 1, z);
 			Vector3 vertex2(x, 1, z + 1);
 			this->vertices.push_back(vertex1);
-			this->vertices.push_back(vertex2);
+			//this->vertices.push_back(vertex2);
 
 			Vector2 uv1(x / (float)width, z / (float)height);
 			Vector2 uv2(x / (float)width, (z + 1) / (float)height);
 			this->uvs.push_back(uv1);
-			this->uvs.push_back(uv2);
+			//this->uvs.push_back(uv2);
 		}
 	}
+	this->setup_index_buffer();
 
 	this->CreateVertexBuffers();
+}
+
+void Mesh::setup_index_buffer()
+{
+	int width = 60;
+	int height = 60;
+
+	// Now build the index data
+	int numStripsRequired = width - 1;
+	int numDegensRequired = 2 * (numStripsRequired - 1);
+	int verticesPerStrip = 2 * height;
+
+	//final short[] heightMapIndexData = new short[(verticesPerStrip * numStripsRequired)
+	//	+ numDegensRequired];
+
+	//offset = 0;
+
+	for (int y = 0; y <width - 1; y++) {
+		if (y > 0) {
+			// Degenerate begin: repeat first vertex
+			this->indices.push_back(y * height);
+		}
+
+		for (int x = 0; x < height; x++) {
+			// One part of the strip
+			this->indices.push_back((y * height) + x);
+			this->indices.push_back(((y + 1) * height) + x);
+		}
+
+		if (y < height - 2) {
+			// Degenerate end: repeat last vertex
+			this->indices.push_back(((y + 1) * height) + (width - 1));
+		}
+	}
 }
 
 void Mesh::CreateVertexBuffers()
@@ -108,14 +143,14 @@ void Mesh::CreateVertexBuffers()
 	////Enable the shader attribute to receive data
 	//glEnableVertexAttribArray(2);
 
-	////////////////////////////////////////////////////////////////////////////
-	////Indices EBO
-	////Create EBO on the GPU to store the vertex data
-	//glGenBuffers(1, &this->index_ebo);
-	////Bind EBO to make it current
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->index_ebo);
-	////Set the usage type, allocate VRAM and send the vertex data to the GPU
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(unsigned int), &this->indices[0], GL_STATIC_DRAW);
+	//////////////////////////////////////////////////////////////////////////
+	//Indices EBO
+	//Create EBO on the GPU to store the vertex data
+	glGenBuffers(1, &this->index_ebo);
+	//Bind EBO to make it current
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->index_ebo);
+	//Set the usage type, allocate VRAM and send the vertex data to the GPU
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(unsigned int), &this->indices[0], GL_STATIC_DRAW);
 
 	//////////////////////////////////////////////////////////////////////////
 	//Unbind the VAO now that the VBOs have been set up

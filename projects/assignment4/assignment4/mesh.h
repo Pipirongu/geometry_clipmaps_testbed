@@ -29,7 +29,8 @@ public:
 	/// Draw the mesh, and then calls the childrens' draw
 	void Draw();
 	void GenerateNestedRegularGrid(int width, int height);
-	
+	void setup_index_buffer();
+
 	//vertices, uvs, normals, indices
 	std::vector<Vector3> vertices;
 	std::vector<Vector2> uvs;
