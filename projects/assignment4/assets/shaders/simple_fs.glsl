@@ -8,5 +8,5 @@ layout(location = 0) out vec3 color;
 
 
 void main(){
-	color = vec3(1,heightvalue,1);
+	color = vec3(heightvalue,heightvalue,heightvalue);
 }

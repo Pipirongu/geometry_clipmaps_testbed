@@ -22,8 +22,8 @@ LIST(APPEND ALLSRCS ${SRCSBASE} ${SRCSBASEDEBUGRENDERER})
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
 ADD_EXECUTABLE(${PROJECT_NAME}  ${ALLSRCS})
-TARGET_LINK_LIBRARIES(${PROJECT_NAME}  core render mypersonalmathlibrary freetype extralibs)
-ADD_DEPENDENCIES(${PROJECT_NAME} core render mypersonalmathlibrary freetype)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME}  core render mypersonalmathlibrary freetype SOIL extralibs)
+ADD_DEPENDENCIES(${PROJECT_NAME} core render mypersonalmathlibrary SOIL freetype)
 
 
 #Create directory before build

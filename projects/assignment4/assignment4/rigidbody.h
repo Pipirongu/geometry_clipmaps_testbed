@@ -5,8 +5,6 @@
 #include "texture.h"
 #include "mypersonalmathlib.h"
 #include "debugrenderer.h"
-#include "aabb.h"
-#include "obb.h"
 #include <vector>
 
 /**

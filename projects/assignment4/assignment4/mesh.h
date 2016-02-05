@@ -1,7 +1,6 @@
 #pragma once
 
 //For class representing key for map in the vertex indexing algorithm
-#include "packedvertex.h"
 #include <map>
 
 #include <GL/glew.h>
@@ -10,9 +9,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "mypersonalmathlib.h"
 #include <vector>
 #include <algorithm>
-#include "aabb.h"
 
 /**
 @class Mesh
@@ -29,15 +28,14 @@ public:
 
 	/// Draw the mesh, and then calls the childrens' draw
 	void Draw();
-	/// Object Loader. Takes the path to the obj file. Reads the data and puts it into VBOs on the VRAM
-	void LoadOBJ(const char* path);
-	void GenerateNestedRegularGrid();
+	void GenerateNestedRegularGrid(int width, int height);
 	
 	//vertices, uvs, normals, indices
 	std::vector<Vector3> vertices;
 	std::vector<Vector2> uvs;
 	std::vector<Vector3> normals;
 	std::vector<unsigned int> indices;
+	const float height_scale = 20;
 
 private:
 	
@@ -53,8 +51,4 @@ private:
 	GLuint index_ebo;
 
 	void CreateVertexBuffers();
-	/// Used by indexVBO function to compare a vertex with vertices in a list. If one is found in the list. Function returns true and result parameter will hold the index of the vertex found in the list
-	bool GetSimilarVertexIndex(PackedVertex& packed, std::map<PackedVertex, unsigned int>& VertexToOutIndex, unsigned int& result);
-	/// Vertex indexing. Generates lists of vertices with no duplicates. An indices list is also generated to tell which vertices should form a triangle.
-	void IndexVBO(std::vector<Vector3>& in_vertices, std::vector<Vector2>& in_uvs, std::vector<Vector3>& in_normals);
 };

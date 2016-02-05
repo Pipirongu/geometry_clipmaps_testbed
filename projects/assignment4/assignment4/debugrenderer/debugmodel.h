@@ -1,7 +1,6 @@
 #pragma once
 
 #include "mypersonalmathlib.h"
-#include "packedvertex.h"
 #include "debugshape.h"
 
 //For opening files

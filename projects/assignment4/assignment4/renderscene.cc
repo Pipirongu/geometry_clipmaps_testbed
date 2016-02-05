@@ -97,7 +97,7 @@ RenderScene::Open()
 			this->window->SetSize(this->window_width, this->window_height);
 			float aspect = (float)this->window_width / (float)this->window_height;
 			this->projection = Matrix44::Perspective(60, aspect, 0.1, 1000);
-			//TextRenderer::Instance()->SetProjection(Matrix44::Ortho(0.0f, this->window_width, 0.0f, this->window_height, -1, 1));
+			TextRenderer::Instance()->SetProjection(Matrix44::Ortho(0.0f, this->window_width, 0.0f, this->window_height, -1, 1));
 		}
 	});
 
@@ -117,7 +117,7 @@ RenderScene::Open()
 	
 		ShaderManager::Instance()->AddShaderProgram("shaders/simple_vs.glsl", "shaders/simple_fs.glsl", "main");
 		//ShaderManager::Instance()->AddShaderProgram("shaders/debug_vs.glsl", "shaders/debug_fs.glsl", "debug");
-		//ShaderManager::Instance()->AddShaderProgram("shaders/text_vs.glsl", "shaders/text_fs.glsl", "text");
+		ShaderManager::Instance()->AddShaderProgram("shaders/text_vs.glsl", "shaders/text_fs.glsl", "text");
 
 		//Objects
 		this->root = new Root;
@@ -127,10 +127,11 @@ RenderScene::Open()
 		this->rigidbody_texture->LoadTexture("textures/cube.png");
 
 		//plane
+		int width, height;
 		this->heightmap = new Texture;
-		this->heightmap->LoadHeightmap("textures/heightmap.bmp");
+		this->heightmap->LoadHeightmap("textures/heightmap.bmp", width, height);
 		this->plane_mesh = new Mesh;
-		this->plane_mesh->GenerateNestedRegularGrid();
+		this->plane_mesh->GenerateNestedRegularGrid(width, height);
 
 
 		
@@ -148,8 +149,8 @@ RenderScene::Open()
 		float aspect = (float)this->window_width / (float)this->window_height;
 		this->projection = Matrix44::Perspective(60, aspect, 0.1, 1000);
 
-		//TextRenderer::Instance()->Init("fonts/font.ttf", 18);
-		//TextRenderer::Instance()->SetProjection(Matrix44::Ortho(0.0f, this->window_width, 0.0f, this->window_height, -1, 1));
+		TextRenderer::Instance()->Init("fonts/font.ttf", 18);
+		TextRenderer::Instance()->SetProjection(Matrix44::Ortho(0.0f, this->window_width, 0.0f, this->window_height, -1, 1));
 
 		this->AddPlaneToScene(true, Vector3(0, 0, 0));
 		this->is_open = true;
@@ -181,19 +182,19 @@ RenderScene::Run()
 		this->root->Update(this->view);
 		this->RenderPass();
 
-		//ShaderManager::Instance()->ChangeShader("text");
+		ShaderManager::Instance()->ChangeShader("text");
 
-		//if ((current_time - this->fps_timer) > 0.2f){
-		//	this->fps = std::to_string((int)(1 / this->delta_time)) + " FPS";
-		//	this->pos = "[" + std::to_string((int)camera->position[0]) + "," + std::to_string((int)camera->position[1]) + "," + std::to_string((int)camera->position[2]) + "]";
-		//	this->objects = "Objects: " + std::to_string(this->object_list.size());
-		//	this->fps_timer = current_time;
-		//}
+		if ((current_time - this->fps_timer) > 0.2f){
+			this->fps = std::to_string((int)(1 / this->delta_time)) + " FPS";
+			this->pos = "[" + std::to_string((int)camera->position[0]) + "," + std::to_string((int)camera->position[1]) + "," + std::to_string((int)camera->position[2]) + "]";
+			this->objects = "Objects: " + std::to_string(this->object_list.size());
+			this->fps_timer = current_time;
+		}
 
-		//TextRenderer::Instance()->SetColor(1, 1, 1);
-		//TextRenderer::Instance()->RenderText(fps, 20.f, this->window_height - 25.f, 1);
-		//TextRenderer::Instance()->SetColor(1, 1, 0);
-		//TextRenderer::Instance()->RenderText(objects, 20.f, this->window_height - 50.f, 1);
+		TextRenderer::Instance()->SetColor(1, 1, 1);
+		TextRenderer::Instance()->RenderText(fps, 20.f, this->window_height - 25.f, 1);
+		TextRenderer::Instance()->SetColor(1, 1, 0);
+		TextRenderer::Instance()->RenderText(objects, 20.f, this->window_height - 50.f, 1);
 		//TextRenderer::Instance()->RenderText("Toggle Scenes: 1-3", 20.f, this->window_height - 100.f, 1);
 		//TextRenderer::Instance()->RenderText("Toggle Wireframe: 4", 20.f, this->window_height - 125.f, 1);
 		//TextRenderer::Instance()->RenderText("Pause: Spacebar", 20.f, this->window_height - 150.f, 1);
@@ -236,18 +237,6 @@ void RenderScene::RenderPass()
 	//ShaderManager::Instance()->ChangeShader("debug");
 	////Draw light
 	//this->light->DrawDebug(this->projection, this->view);
-
-	//if (this->debug_rendering_toggle <= 2){
-	//	//Draw bounding boxes
-	//	for (std::map<int, RigidBody*>::iterator it = this->object_list.begin(); it != this->object_list.end(); it++){
-	//		if (this->debug_rendering_toggle == 0 || this->debug_rendering_toggle == 1){
-	//			it->second->DrawAABB(this->projection, this->view);
-	//		}
-	//		if (this->debug_rendering_toggle == 0 || this->debug_rendering_toggle == 2){
-	//			it->second->DrawOBB(this->projection, this->view);
-	//		}
-	//	}
-	//}
 }
 
 //------------------------------------------------------------------------------
@@ -287,14 +276,4 @@ void RenderScene::CameraControls()
 	this->camera->UpdateCameraMatrix(); //update camera matrix
 }
 
-int RenderScene::TestAABB_AABB(AABB *a, AABB *b)
-{
-	// Exit with no intersection if separated along an axis
-	if (a->max.value[0] < b->min.value[0] || a->min.value[0] > b->max.value[0]) return 0;
-	if (a->max.value[1] < b->min.value[1] || a->min.value[1] > b->max.value[1]) return 0;
-	if (a->max.value[2] < b->min.value[2] || a->min.value[2] > b->max.value[2]) return 0;
-
-	// Overlapping on all axes means AABBs are intersecting
-	return 1;
-}
 } // namespace Example

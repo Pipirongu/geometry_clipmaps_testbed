@@ -3,7 +3,6 @@
 #include <vector>
 #include <GL/glew.h>
 #include "mypersonalmathlib.h"
-#include "packedvertex.h"
 #include <map>
 
 //For opening files

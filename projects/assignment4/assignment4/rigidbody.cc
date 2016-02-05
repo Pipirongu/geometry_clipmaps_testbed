@@ -66,6 +66,7 @@ void RigidBody::Draw(const Matrix44& projection, const Matrix44& view)
 	glUniform3fv(ShaderManager::Instance()->ambient_material_loc, 1, &this->ambient_material[0]);
 	glUniform3fv(ShaderManager::Instance()->specular_material_loc, 1, &this->specular_material[0]);
 	glUniform1f(ShaderManager::Instance()->shininess_loc, this->shininess);
+	glUniform1f(ShaderManager::Instance()->height_scale_loc, this->mesh->height_scale);
 
 	
 	//Form the mvp matrix from matrices supplies with draw function

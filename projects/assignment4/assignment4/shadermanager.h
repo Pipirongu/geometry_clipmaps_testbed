@@ -50,6 +50,7 @@ public:
 	GLuint wireframe_color_loc;
 	GLuint projection_loc;
 	GLuint text_color_loc;
+	GLuint height_scale_loc;
 
 private:
 	//map with shaders

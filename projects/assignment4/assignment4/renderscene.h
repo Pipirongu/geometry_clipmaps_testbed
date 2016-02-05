@@ -81,7 +81,6 @@ private:
 	void RenderPass();
 	void CameraControls();
 
-	int TestAABB_AABB(AABB *a, AABB *b);
 };
 
 } // namespace Example
