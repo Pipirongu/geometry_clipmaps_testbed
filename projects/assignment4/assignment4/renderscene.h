@@ -39,6 +39,8 @@ public:
 	/// run app
 	void Run();
 
+	int STEP_SIZE = 1;
+
 private:
 	std::string fps;
 	std::string pos;

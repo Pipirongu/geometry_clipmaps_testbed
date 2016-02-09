@@ -13,7 +13,7 @@ Camera::Camera()
 	// vertical angle : 0, look at the horizon
 	this->vertical_angle = 0.0f;
 
-	this->keyboard_sensitivity = 10.0f;
+	this->keyboard_sensitivity = 30.0f;
 	this->mouse_sensitivity = 0.005f;
 }
 

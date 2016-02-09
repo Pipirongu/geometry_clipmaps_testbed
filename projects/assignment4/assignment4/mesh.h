@@ -29,6 +29,7 @@ public:
 	/// Draw the mesh, and then calls the childrens' draw
 	void Draw();
 	void GenerateNestedRegularGrid(int width, int height);
+	void UpdateNestedRegularGrid(int width, int height);
 	void setup_index_buffer();
 
 	//vertices, uvs, normals, indices
@@ -36,7 +37,8 @@ public:
 	std::vector<Vector2> uvs;
 	std::vector<Vector3> normals;
 	std::vector<unsigned int> indices;
-	const float height_scale = 20;
+	float height_scale = 20;
+	int STEP_SIZE = 1;
 
 private:
 	
@@ -52,4 +54,5 @@ private:
 	GLuint index_ebo;
 
 	void CreateVertexBuffers();
+	void UpdateVertexBuffers();
 };

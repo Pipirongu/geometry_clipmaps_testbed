@@ -57,6 +57,7 @@ void ShaderManager::ChangeShader(std::string name_of_shader)
 	this->projection_loc = glGetUniformLocation(shader_id, "projection");
 	this->text_color_loc = glGetUniformLocation(shader_id, "text_color");
 	this->height_scale_loc = glGetUniformLocation(shader_id, "height_scale");
+	this->step_size_loc = glGetUniformLocation(shader_id, "step_size");
 }
 
 //------------------------------------------------------------------------------

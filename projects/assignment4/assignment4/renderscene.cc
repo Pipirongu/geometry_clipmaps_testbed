@@ -57,6 +57,10 @@ RenderScene::Open()
 	// key callback
 	this->window->SetKeyPressFunction([this](int32 key, int32 scancode, int32 action, int32 mods)
 	{
+		if (key == GLFW_KEY_1 && action == GLFW_PRESS){
+			plane_mesh->STEP_SIZE *= 2;
+			plane_mesh->UpdateNestedRegularGrid(60, 60);
+		}
 		if (key == GLFW_KEY_4 && action == GLFW_PRESS){
 			this->wireframe_rendering_toggle++;
 			if (this->wireframe_rendering_toggle == 2){

@@ -51,6 +51,7 @@ public:
 	GLuint projection_loc;
 	GLuint text_color_loc;
 	GLuint height_scale_loc;
+	GLuint step_size_loc;
 
 private:
 	//map with shaders

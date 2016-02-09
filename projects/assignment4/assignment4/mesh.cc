@@ -39,24 +39,54 @@ void Mesh::Draw()
 
 void Mesh::GenerateNestedRegularGrid(int width, int height)
 {
-	for (unsigned int z = 0; z < width; z++)
+	//Generate all the points on grid
+	for (unsigned int z = 0; z < width; z++) // rows
 	{
-		for (unsigned int x = 0; x < height; x++)
+		for (unsigned int x = 0; x < height; x++) // cols
 		{
-			Vector3 vertex1(x, 1, z);
-			Vector3 vertex2(x, 1, z + 1);
+			Vector3 vertex1(x*STEP_SIZE, 0, z*STEP_SIZE);
+			//Vector3 vertex2(x, 0, z + 1);
 			this->vertices.push_back(vertex1);
 			//this->vertices.push_back(vertex2);
 
 			Vector2 uv1(x / (float)width, z / (float)height);
-			Vector2 uv2(x / (float)width, (z + 1) / (float)height);
+			//Vector2 uv2(x / (float)width, (z + 1) / (float)height);
 			this->uvs.push_back(uv1);
 			//this->uvs.push_back(uv2);
 		}
 	}
+	//generate indices for the triangle strip. detects when a strip ends to connect it with the next row's strip(using degenerate triangle)
 	this->setup_index_buffer();
 
 	this->CreateVertexBuffers();
+}
+
+void Mesh::UpdateNestedRegularGrid(int width, int height)
+{
+	this->vertices.clear();
+	this->uvs.clear();
+	this->indices.clear();
+
+	//Generate all the points on grid
+	for (unsigned int z = 0; z < width; z++) // rows
+	{
+		for (unsigned int x = 0; x < height; x++) // cols
+		{
+			Vector3 vertex1(x*STEP_SIZE, 0, z*STEP_SIZE);
+			//Vector3 vertex2(x, 0, z + 1);
+			this->vertices.push_back(vertex1);
+			//this->vertices.push_back(vertex2);
+
+			Vector2 uv1(x / (float)width, z / (float)height);
+			//Vector2 uv2(x / (float)width, (z + 1) / (float)height);
+			this->uvs.push_back(uv1);
+			//this->uvs.push_back(uv2);
+		}
+	}
+	//generate indices for the triangle strip. detects when a strip ends to connect it with the next row's strip(using degenerate triangle)
+	this->setup_index_buffer();
+
+	this->UpdateVertexBuffers();
 }
 
 void Mesh::setup_index_buffer()
@@ -64,28 +94,20 @@ void Mesh::setup_index_buffer()
 	int width = 60;
 	int height = 60;
 
-	// Now build the index data
-	int numStripsRequired = width - 1;
-	int numDegensRequired = 2 * (numStripsRequired - 1);
-	int verticesPerStrip = 2 * height;
-
-	//final short[] heightMapIndexData = new short[(verticesPerStrip * numStripsRequired)
-	//	+ numDegensRequired];
-
-	//offset = 0;
-
-	for (int y = 0; y <width - 1; y++) {
+	for (int y = 0; y < height - 1; y++) { //rows
+		//Skip the first vertex of the grid(we don't want a degenerate triangle if it's the start or end vertex. Which is why the loop is rows-1)
 		if (y > 0) {
 			// Degenerate begin: repeat first vertex
 			this->indices.push_back(y * height);
 		}
 
-		for (int x = 0; x < height; x++) {
+		for (int x = 0; x < width; x++) { // cols
 			// One part of the strip
 			this->indices.push_back((y * height) + x);
 			this->indices.push_back(((y + 1) * height) + x);
 		}
 
+		//no skip, adds the last vertex of the strip as a degenerate, which will connect with the next row's degenerate vertex)
 		if (y < height - 2) {
 			// Degenerate end: repeat last vertex
 			this->indices.push_back(((y + 1) * height) + (width - 1));
@@ -108,7 +130,7 @@ void Mesh::CreateVertexBuffers()
 	//Bind VBO to make it current
 	glBindBuffer(GL_ARRAY_BUFFER, this->vertex_vbo);
 	//Set the usage type, allocate VRAM and send the vertex data to the GPU
-	glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vector3), &this->vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vector3), &this->vertices[0], GL_DYNAMIC_DRAW);
 
 	//Sets up which shader attribute will received the data. How many elements will form a vertex, type etc
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
@@ -122,7 +144,7 @@ void Mesh::CreateVertexBuffers()
 	//Bind VBO to make it current
 	glBindBuffer(GL_ARRAY_BUFFER, this->uv_vbo);
 	//Set the usage type, allocate VRAM and send the vertex data to the GPU
-	glBufferData(GL_ARRAY_BUFFER, this->uvs.size() * sizeof(Vector2), &this->uvs[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, this->uvs.size() * sizeof(Vector2), &this->uvs[0], GL_DYNAMIC_DRAW);
 
 	//Sets up which shader attribute will receive the data. How many elements will form a vertex, type etc
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
@@ -150,9 +172,34 @@ void Mesh::CreateVertexBuffers()
 	//Bind EBO to make it current
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->index_ebo);
 	//Set the usage type, allocate VRAM and send the vertex data to the GPU
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(unsigned int), &this->indices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(unsigned int), &this->indices[0], GL_DYNAMIC_DRAW);
 
 	//////////////////////////////////////////////////////////////////////////
 	//Unbind the VAO now that the VBOs have been set up
 	glBindVertexArray(0);
+}
+
+void Mesh::UpdateVertexBuffers()
+{
+
+	//////////////////////////////////////////////////////////////////////////
+	//Vertex VBO
+	//Bind VBO to make it current
+	glBindBuffer(GL_ARRAY_BUFFER, this->vertex_vbo);
+	//Set the usage type, allocate VRAM and send the vertex data to the GPU
+	glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vector3), &this->vertices[0], GL_DYNAMIC_DRAW);
+
+	//////////////////////////////////////////////////////////////////////////
+	//UV VBO
+	//Bind VBO to make it current
+	glBindBuffer(GL_ARRAY_BUFFER, this->uv_vbo);
+	//Set the usage type, allocate VRAM and send the vertex data to the GPU
+	glBufferData(GL_ARRAY_BUFFER, this->uvs.size() * sizeof(Vector2), &this->uvs[0], GL_DYNAMIC_DRAW);
+
+	//////////////////////////////////////////////////////////////////////////
+	//Indices EBO
+	//Bind EBO to make it current
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->index_ebo);
+	//Set the usage type, allocate VRAM and send the vertex data to the GPU
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(unsigned int), &this->indices[0], GL_DYNAMIC_DRAW);
 }
