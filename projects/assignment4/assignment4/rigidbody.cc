@@ -70,11 +70,12 @@ void RigidBody::Draw(const Matrix44& projection, const Matrix44& view)
 	glUniform1f(ShaderManager::Instance()->step_size_loc, this->mesh->STEP_SIZE);
 	
 	//Form the mvp matrix from matrices supplies with draw function
-	Matrix44 mvp = projection * view * this->model;
-
 	Matrix44 model_matrix = this->model;
+	Matrix44 mvp = projection * view * model_matrix;
+
+
 	Matrix44 view_matrix = view;
-	Matrix44 modelview_matrix = view * this->model;
+	Matrix44 modelview_matrix = view * model_matrix;
 
 	//Send matrices to shader uniforms
 	glUniformMatrix4fv(ShaderManager::Instance()->model_loc, 1, GL_TRUE, &model_matrix[0][0]);

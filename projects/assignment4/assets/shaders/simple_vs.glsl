@@ -29,8 +29,8 @@ void main(){
 	float height = texture(height_map, vertex_uv).r;
 	// float height = texture(height_map, vec2(x_coord, z_coord)).r;
 	
-	vec4 vertex = vec4(vertex_position_modelspace.x, step_size*height_scale*height, vertex_position_modelspace.z, 1);
-	// vec4 vertex = vec4(vertex_position_modelspace.x, 0, vertex_position_modelspace.z, 1);
+	// vec4 vertex = vec4(vertex_position_modelspace.x, step_size*height_scale*height, vertex_position_modelspace.z, 1);
+	vec4 vertex = vec4(vertex_position_modelspace.x, 0, vertex_position_modelspace.z, 1);
 	//Output position of vertex in clip space
 	gl_Position = mvp * vertex;
 

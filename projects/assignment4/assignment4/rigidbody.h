@@ -90,6 +90,8 @@ public:
 	//A Combination of Translation/Rotation matrices
 	Matrix44 look_at;
 
+	float clipmap_scale;
+
 private:
 	int id;
 	

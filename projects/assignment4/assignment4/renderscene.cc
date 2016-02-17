@@ -131,7 +131,8 @@ RenderScene::Open()
 		this->heightmap = new Texture;
 		this->heightmap->LoadHeightmap("textures/heightmap.bmp", width, height);
 		this->plane_mesh = new Mesh;
-		this->plane_mesh->GenerateNestedRegularGrid(width, height);
+		//this->plane_mesh->GenerateNestedRegularGrid(width, height);
+		this->plane_mesh->GenerateNestedRegularGrid(15, 15);
 
 
 		
@@ -152,7 +153,8 @@ RenderScene::Open()
 		TextRenderer::Instance()->Init("fonts/font.ttf", 18);
 		TextRenderer::Instance()->SetProjection(Matrix44::Ortho(0.0f, this->window_width, 0.0f, this->window_height, -1, 1));
 
-		this->AddPlaneToScene(true, Vector3(0, 0, 0));
+		this->AddPlaneToScene(true, Vector3(0, 0, 0), 1);
+		this->AddPlaneToScene(true, Vector3(0, 0, 0), 2);
 		this->is_open = true;
 		return true;
 	}
@@ -207,11 +209,12 @@ RenderScene::Run()
 	this->window->Close();
 }
 
-void RenderScene::AddPlaneToScene(bool is_kinematic, Vector3 position, float degrees, Vector3 axis)
+void RenderScene::AddPlaneToScene(bool is_kinematic, Vector3 position, float clipmap_scale, float degrees, Vector3 axis)
 {
 	RigidBody* rigidbody = new RigidBody;
 	rigidbody->SetPosition(position);
 	rigidbody->Rotate(degrees, axis);
+	rigidbody->SetScale(clipmap_scale);
 
 	rigidbody->SetMesh(this->plane_mesh);
 	//rigidbody->SetTexture(this->rigidbody_texture);

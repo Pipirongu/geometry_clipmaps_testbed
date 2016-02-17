@@ -30,7 +30,7 @@ public:
 	void Draw();
 	void GenerateNestedRegularGrid(int width, int height);
 	void UpdateNestedRegularGrid(int width, int height);
-	void setup_index_buffer();
+	void setup_index_buffer(int width, int height);
 
 	//vertices, uvs, normals, indices
 	std::vector<Vector3> vertices;

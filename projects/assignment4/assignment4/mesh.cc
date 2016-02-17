@@ -44,7 +44,7 @@ void Mesh::GenerateNestedRegularGrid(int width, int height)
 	{
 		for (unsigned int x = 0; x < height; x++) // cols
 		{
-			Vector3 vertex1(x*STEP_SIZE, 0, z*STEP_SIZE);
+			Vector3 vertex1(x, 0, z);
 			//Vector3 vertex2(x, 0, z + 1);
 			this->vertices.push_back(vertex1);
 			//this->vertices.push_back(vertex2);
@@ -56,7 +56,7 @@ void Mesh::GenerateNestedRegularGrid(int width, int height)
 		}
 	}
 	//generate indices for the triangle strip. detects when a strip ends to connect it with the next row's strip(using degenerate triangle)
-	this->setup_index_buffer();
+	this->setup_index_buffer(width, height);
 
 	this->CreateVertexBuffers();
 }
@@ -84,16 +84,13 @@ void Mesh::UpdateNestedRegularGrid(int width, int height)
 		}
 	}
 	//generate indices for the triangle strip. detects when a strip ends to connect it with the next row's strip(using degenerate triangle)
-	this->setup_index_buffer();
+	this->setup_index_buffer(width, height);
 
 	this->UpdateVertexBuffers();
 }
 
-void Mesh::setup_index_buffer()
+void Mesh::setup_index_buffer(int width, int height)
 {
-	int width = 60;
-	int height = 60;
-
 	for (int y = 0; y < height - 1; y++) { //rows
 		//Skip the first vertex of the grid(we don't want a degenerate triangle if it's the start or end vertex. Which is why the loop is rows-1)
 		if (y > 0) {

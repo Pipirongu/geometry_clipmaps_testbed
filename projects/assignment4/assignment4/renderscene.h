@@ -78,7 +78,7 @@ private:
 	RenderScene(const RenderScene&);
 	///Private assignment constructor to prevent creating an instance other than calling the Instance() function
 	RenderScene& operator=(const RenderScene&);
-	void AddPlaneToScene(bool is_kinematic, Vector3 position, float degrees = 0, Vector3 axis = Vector3(1, 1, 1));
+	void AddPlaneToScene(bool is_kinematic, Vector3 position, float clipmap_scale, float degrees = 0, Vector3 axis = Vector3(1, 1, 1));
 	void RenderPass();
 	void CameraControls();
 
