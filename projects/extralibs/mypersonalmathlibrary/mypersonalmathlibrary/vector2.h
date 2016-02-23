@@ -13,6 +13,7 @@ public:
 	Vector2(void);
 	/// A Vector of size 2 with x, y values
 	Vector2(float x, float y);
+	Vector2(float s);
 	~Vector2(void);
 
 	/// Set x, y values of the Vector
@@ -38,6 +39,11 @@ public:
 	/// Vector2/number
 	Vector2 operator/(const float& number)const;
 
+	//bitwise operators
+	Vector2 operator/(const Vector2& b)const;
+	Vector2 operator*(const Vector2& b)const;
+	void operator*=(const Vector2& b);
+
 	/// number*Vector2
 	friend Vector2 operator*(const float& number, const Vector2& rhs);
 
@@ -52,15 +58,22 @@ public:
 	void Normalize();
 	/// Return the normalized vector
 	Vector2 Normalized();
+	static Vector2 vec_fract(const Vector2& vec);
+	static Vector2 vec_floor(const Vector2& vec);
 
 	/// Overloaded access operator for Vector
 	float& operator[](unsigned int index);
 	const float& operator[](unsigned int index) const;
 
-private:
 	union
 	{
+		struct
+		{
+			float x, y;
+		};
+		// Allow us to use vec2, vec3 and vec4 directly in uniform buffers.
+		// GLSL using std140 packing demands that packing of vectors is four floats.
+		// The rules on packing with arrays can be slightly complicated howewer.
 		float data[2];
-		struct{ float x, y; };
 	};
 };

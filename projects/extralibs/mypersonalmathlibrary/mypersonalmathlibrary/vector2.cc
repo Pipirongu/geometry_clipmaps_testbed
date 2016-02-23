@@ -21,6 +21,16 @@ Vector2::Vector2( float x, float y )
 //------------------------------------------------------------------------------
 /**
 */
+Vector2::Vector2(float s)
+{
+	this->data[0] = s;
+	this->data[1] = s;
+}
+
+
+//------------------------------------------------------------------------------
+/**
+*/
 Vector2::~Vector2(void)
 {
 }
@@ -202,6 +212,45 @@ Vector2 Vector2::Normalized()
 	return result;
 }
 
+Vector2 Vector2::vec_fract(const Vector2& vec)
+{
+	return vec - vec_floor(vec);
+}
+
+Vector2 Vector2::vec_floor(const Vector2& vec)
+{
+	Vector2 res;
+	for (unsigned int i = 0; i < 2; i++){
+		res[i] = floor(vec[i]);
+	}
+	return res;
+}
+
+Vector2 Vector2::operator/(const Vector2& b)const
+{
+	Vector2 res;
+	for (unsigned int i = 0; i < 2; i++){
+		res[i] = this->data[i] / b[i];
+	}
+	return res;
+}
+
+Vector2 Vector2::operator*(const Vector2& b)const
+{
+	Vector2 res;
+	for (unsigned int i = 0; i < 2; i++){
+		res[i] = this->data[i] * b[i];
+	}
+	return res;
+}
+
+void Vector2::operator*=(const Vector2& b)
+{
+	for (int i = 0; i < 2; i++)
+	{
+		this->data[i] = this->data[i] * b[i];
+	}
+}
 //------------------------------------------------------------------------------
 /**
 */

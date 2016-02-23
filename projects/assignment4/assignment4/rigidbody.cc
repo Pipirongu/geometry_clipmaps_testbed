@@ -55,11 +55,6 @@ void RigidBody::Update(Matrix44& view, const Matrix44& model)
 	
 }
 
-void RigidBody::Integrate(float timestep)
-{
-	//empti
-}
-
 void RigidBody::Draw(const Matrix44& projection, const Matrix44& view)
 {	
 	//Send the material properties to shader program

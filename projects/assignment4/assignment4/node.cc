@@ -44,21 +44,6 @@ void Node::Draw(const Matrix44& projection, const Matrix44& view)
 	}
 }
 
-void Node::Integrate(float timestep)
-{
-	//Calls the childrens' draw
-	if (!this->children.empty())
-	{
-		for (int i = 0; i < this->children.size(); i++)
-		{
-			if (this->children[i] != nullptr)
-			{
-				this->children[i]->Integrate(timestep);
-			}
-		}
-	}
-}
-
 void Node::AddChildNode(Node* childNode)
 {
 	//Sets the child node's parent to this and adds the child to this node's children list

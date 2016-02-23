@@ -22,6 +22,17 @@
 #include <unordered_set>
 #include <algorithm>
 #include <limits>
+#include "clipmapgrid.h"
+
+// Sets the size of clipmap blocks, NxN vertices per block. Should be power-of-two and no bigger than 64.
+// A clipmap-level is organized roughly as 4x4 blocks with some padding. A clipmap level is a (4N-1) * (4N-1) grid.
+#define CLIPMAP_SIZE 16
+
+// Number of LOD levels for clipmap.
+#define CLIPMAP_LEVELS 10
+
+// Distance between vertices.
+#define CLIPMAP_SCALE 0.25f
 
 namespace Graphics
 {
@@ -58,9 +69,12 @@ private:
 	Root* root;
 	Camera* camera;
 	Mesh* plane_mesh;
-	Texture* heightmap;
 	Light* light;
-	
+
+	//Clipmapgrid and heightmap :)
+	ClipmapGrid* clipmaps;
+	Texture* heightmap;
+
 	std::map<int, RigidBody*> object_list;
 
 	float delta_time;
@@ -80,6 +94,8 @@ private:
 	RenderScene& operator=(const RenderScene&);
 	void AddPlaneToScene(bool is_kinematic, Vector3 position, float clipmap_scale, float degrees = 0, Vector3 axis = Vector3(1, 1, 1));
 	void RenderPass();
+	void UpdateClipmaps();
+	void RenderClipmaps();
 	void CameraControls();
 
 };

@@ -33,8 +33,6 @@ public:
 	/// Does nothing with this class. Just calls its childrens' update and forwards the arguments
 	void Draw(const Matrix44& projection, const Matrix44& view);
 
-	void Integrate(float timestep);
-
 	//set for mesh, texture
 	void SetMesh(Mesh* mesh);
 	void SetID();

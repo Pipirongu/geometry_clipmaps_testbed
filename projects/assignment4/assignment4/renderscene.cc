@@ -119,20 +119,16 @@ RenderScene::Open()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
 		ShaderManager::Instance()->AddShaderProgram("shaders/simple_vs.glsl", "shaders/simple_fs.glsl", "main");
-		//ShaderManager::Instance()->AddShaderProgram("shaders/debug_vs.glsl", "shaders/debug_fs.glsl", "debug");
+		ShaderManager::Instance()->AddShaderProgram("shaders/clipmaps_vs.glsl", "shaders/clipmaps_fs.glsl", "clipmaps");
+		ShaderManager::Instance()->ChangeShader("clipmaps");
+		glUniformBlockBinding(ShaderManager::Instance()->shaders["clipmaps"], glGetUniformBlockIndex(ShaderManager::Instance()->shaders["clipmaps"], "InstanceData"), 0);
 		ShaderManager::Instance()->AddShaderProgram("shaders/text_vs.glsl", "shaders/text_fs.glsl", "text");
 
 		//Objects
 		this->root = new Root;
 		this->camera = new Camera;
+		this->clipmaps = new ClipmapGrid(CLIPMAP_SIZE, CLIPMAP_LEVELS, CLIPMAP_SCALE);
 
-		//plane
-		int width, height;
-		this->heightmap = new Texture;
-		this->heightmap->LoadHeightmap("textures/heightmap.bmp", width, height);
-		this->plane_mesh = new Mesh;
-		//this->plane_mesh->GenerateNestedRegularGrid(width, height);
-		this->plane_mesh->GenerateNestedRegularGrid(15, 15);
 
 
 		
@@ -153,8 +149,17 @@ RenderScene::Open()
 		TextRenderer::Instance()->Init("fonts/font.ttf", 18);
 		TextRenderer::Instance()->SetProjection(Matrix44::Ortho(0.0f, this->window_width, 0.0f, this->window_height, -1, 1));
 
-		this->AddPlaneToScene(true, Vector3(0, 0, 0), 1);
-		this->AddPlaneToScene(true, Vector3(0, 0, 0), 2);
+		//plane
+		int width, height;
+		this->heightmap = new Texture;
+		this->heightmap->LoadHeightmap("textures/heightmap.bmp", width, height);
+		this->plane_mesh = new Mesh;
+		//this->plane_mesh->GenerateNestedRegularGrid(width, height);
+		this->plane_mesh->GenerateNestedRegularGrid(15, 15);
+
+		//this->AddPlaneToScene(true, Vector3(0, 0, 0), 1);
+		//this->AddPlaneToScene(true, Vector3(0, 0, 0), 2);
+
 		this->is_open = true;
 		return true;
 	}
@@ -181,8 +186,11 @@ RenderScene::Run()
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//Update matrices
-		this->root->Update(this->view);
-		this->RenderPass();
+		this->root->Update(this->view); //updates the view matrix
+		//this->RenderPass();
+
+		this->UpdateClipmaps();
+		this->RenderClipmaps();
 
 		ShaderManager::Instance()->ChangeShader("text");
 
@@ -193,7 +201,7 @@ RenderScene::Run()
 			this->fps_timer = current_time;
 		}
 
-		TextRenderer::Instance()->SetColor(1, 1, 1);
+		TextRenderer::Instance()->SetColor(1, 1, 0);
 		TextRenderer::Instance()->RenderText(fps, 20.f, this->window_height - 25.f, 1);
 		TextRenderer::Instance()->SetColor(1, 1, 0);
 		TextRenderer::Instance()->RenderText(objects, 20.f, this->window_height - 50.f, 1);
@@ -277,6 +285,24 @@ void RenderScene::CameraControls()
 
 	//updates the player
 	this->camera->UpdateCameraMatrix(); //update camera matrix
+}
+
+void RenderScene::UpdateClipmaps()
+{
+	this->clipmaps->Update(this->view);
+}
+
+void RenderScene::RenderClipmaps()
+{
+	ShaderManager::Instance()->ChangeShader("clipmaps");
+	Vector2 camera_pos = Vector2(this->delta_time) * Vector2(0.5f, 1.0f);
+
+	this->clipmaps->update_level_offsets(Vector2(this->camera->position[0], this->camera->position[2]));
+	//update heightmap
+
+	this->heightmap->BindHeightmap();
+	this->clipmaps->Render(this->projection, this->view);
+	this->heightmap->Unbind();
 }
 
 } // namespace Example

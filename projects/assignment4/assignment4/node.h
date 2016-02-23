@@ -22,7 +22,6 @@ public:
 	virtual void Update(Matrix44& view, const Matrix44& model = Matrix44());
 	/// Call the childrens' draw. Reimplement in subclass for dynamic binding
 	virtual void Draw(const Matrix44& projection, const Matrix44& view);
-	virtual void Integrate(float timestep);
 	/// Adds a child node
 	void AddChildNode(Node* childNode);
 	/// Removes a child node

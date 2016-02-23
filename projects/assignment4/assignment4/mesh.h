@@ -28,8 +28,9 @@ public:
 
 	/// Draw the mesh, and then calls the childrens' draw
 	void Draw();
+	//Triangle strip a block and generate its ibo
 	void GenerateNestedRegularGrid(int width, int height);
-	void UpdateNestedRegularGrid(int width, int height);
+	void UpdateNestedRegularGrid(int width, int height); //remove
 	void setup_index_buffer(int width, int height);
 
 	//vertices, uvs, normals, indices
