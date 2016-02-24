@@ -1,20 +1,5 @@
-// #version 330
-
-// // Interpolated values from the vertex shaders
-// in float heightvalue;
-
-// // Ouput data
-// layout(location = 0) out vec3 color;
-
-
-// void main(){
-	// //color = vec3(heightvalue,heightvalue,heightvalue);
-	// color = vec3(1,1,1);
-// }
-
-#version 330
-layout(std140) uniform;
-//precision highp float;
+#version 450
+uniform vec3 debug_color;
 
 in float height_value;
 //in float frag_debug_color;
@@ -35,6 +20,6 @@ void main()
 {
 	//vec3 color = vec3(1.2, 1.2, 1.0) * vec3(map_height(vHeight) + (vLod.x + vLod.y) * 0.1);
 	//vec3 final_color = mix(color, vec3(0.5), vFog);
-	color = vec3(1,0,0);
-	//color = vec3(height_value,height_value,height_value);//vec3(1,1,1);
+	//color = debug_color;
+	color = vec3(height_value,height_value,height_value);
 }

@@ -587,6 +587,7 @@ void ClipmapGrid::update_level_offsets(const Vector2& camera_pos)
 ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_horiz_fixup(InstanceData *instances)
 {
 	DrawInfo info;
+	info.debug_color = Vector3(0, 1, 0);
 	InstanceData instance;
 	//instance.debug_color.Insert(1, 0, 0);
 
@@ -641,6 +642,7 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_horiz_fixup(InstanceData *insta
 ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_vert_fixup(InstanceData *instances)
 {
 	DrawInfo info;
+	info.debug_color = Vector3(0, 1, 0);
 	InstanceData instance;
 	//instance.debug_color.Insert(1, 0, 0);
 
@@ -686,6 +688,7 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_vert_fixup(InstanceData *instan
 ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_degenerate(InstanceData *instances, const Block& block, const Vector2& offset, const Vector2& ring_offset)
 {
 	DrawInfo info;
+	info.debug_color = Vector3(0, 0, 1);
 	info.instances = 0;
 	info.index_buffer_offset = block.offset;
 	info.indices = block.count;
@@ -745,6 +748,7 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_degenerate_bottom(InstanceData 
 ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_trim_full(InstanceData *instances)
 {
 	DrawInfo info;
+	info.debug_color = Vector3(1, 1, 0);
 	info.index_buffer_offset = trim_full.offset;
 	info.indices = trim_full.count;
 	info.instances = 0;
@@ -771,6 +775,7 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_trim_full(InstanceData *instanc
 ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_trim(InstanceData *instances, const Block& block, TrimConditional cond)
 {
 	DrawInfo info;
+	info.debug_color = Vector3(1, 1, 0);
 	info.index_buffer_offset = block.offset;
 	info.indices = block.count;
 	info.instances = 0;
@@ -857,6 +862,7 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_blocks(InstanceData *instances)
 {
 	// Special case for level 0, here we draw the base quad in a tight 4x4 grid. This needs to be padded with a full trim (get_draw_info_trim_full()).
 	DrawInfo info;
+	info.debug_color = Vector3(1, 0, 0);
 	info.instances = 0;
 	info.index_buffer_offset = block.offset;
 	info.indices = block.count;
@@ -954,9 +960,8 @@ void ClipmapGrid::update_draw_list()
 
 	glBindBuffer(GL_UNIFORM_BUFFER, uniform_buffer);
 
-	// Map the uniform buffer.
-	InstanceData *data = static_cast<InstanceData*>(glMapBufferRange(GL_UNIFORM_BUFFER,
-		0, uniform_buffer_size, GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_WRITE_BIT));
+	// Map the uniform buffer. //gets a pointer so we can modify the data on gpu instead of copy it
+	InstanceData *data = static_cast<InstanceData*>(glMapBufferRange(GL_UNIFORM_BUFFER, 0, uniform_buffer_size, GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_WRITE_BIT));
 
 	if (!data)
 	{
@@ -982,21 +987,24 @@ void ClipmapGrid::update_draw_list()
 	info = get_draw_info_horiz_fixup(buffer_offset(data, uniform_buffer_offset));
 	update_draw_list(info, uniform_buffer_offset);
 
-	// Left-side degenerates
-	info = get_draw_info_degenerate_left(buffer_offset(data, uniform_buffer_offset));
-	update_draw_list(info, uniform_buffer_offset);
+	/************************************************************************/
+	/*                                                                      */
+	/************************************************************************/
+	//// Left-side degenerates
+	//info = get_draw_info_degenerate_left(buffer_offset(data, uniform_buffer_offset));
+	//update_draw_list(info, uniform_buffer_offset);
 
-	// Right-side degenerates
-	info = get_draw_info_degenerate_right(buffer_offset(data, uniform_buffer_offset));
-	update_draw_list(info, uniform_buffer_offset);
+	//// Right-side degenerates
+	//info = get_draw_info_degenerate_right(buffer_offset(data, uniform_buffer_offset));
+	//update_draw_list(info, uniform_buffer_offset);
 
-	// Top-side degenerates
-	info = get_draw_info_degenerate_top(buffer_offset(data, uniform_buffer_offset));
-	update_draw_list(info, uniform_buffer_offset);
+	//// Top-side degenerates
+	//info = get_draw_info_degenerate_top(buffer_offset(data, uniform_buffer_offset));
+	//update_draw_list(info, uniform_buffer_offset);
 
-	// Bottom-side degenerates
-	info = get_draw_info_degenerate_bottom(buffer_offset(data, uniform_buffer_offset));
-	update_draw_list(info, uniform_buffer_offset);
+	//// Bottom-side degenerates
+	//info = get_draw_info_degenerate_bottom(buffer_offset(data, uniform_buffer_offset));
+	//update_draw_list(info, uniform_buffer_offset);
 
 	// Full trim
 	info = get_draw_info_trim_full(buffer_offset(data, uniform_buffer_offset));
@@ -1025,82 +1033,19 @@ void ClipmapGrid::render_draw_list()
 {
 	for (std::vector<DrawInfo>::const_iterator itr = draw_list.begin(); itr != draw_list.end(); ++itr)
 	{
-		if (!itr->instances)
-			continue;
+		if (itr->instances){	
+			// Bind uniform buffer at correct offset.
+			//glBindBufferBase(GL_UNIFORM_BUFFER, 0, uniform_buffer);
+			glBindBufferRange(GL_UNIFORM_BUFFER, 0, uniform_buffer, itr->uniform_buffer_offset, realign_offset(itr->instances * sizeof(InstanceData), uniform_buffer_align));
 
-		// Bind uniform buffer at correct offset.
-		glBindBufferRange(GL_UNIFORM_BUFFER, 0, uniform_buffer,
-			itr->uniform_buffer_offset, realign_offset(itr->instances * sizeof(InstanceData), uniform_buffer_align));
+			glUniform3fv(ShaderManager::Instance()->debug_color_loc, 1, &itr->debug_color[0]);
 
-		// Draw all instances.
-		glDrawElementsInstanced(GL_TRIANGLE_STRIP, itr->indices, GL_UNSIGNED_SHORT,
-			reinterpret_cast<const GLvoid*>(itr->index_buffer_offset * sizeof(GLushort)), itr->instances);
+			// Draw all instances.
+			glDrawElementsInstanced(GL_TRIANGLE_STRIP, itr->indices, GL_UNSIGNED_SHORT, reinterpret_cast<const GLvoid*>(itr->index_buffer_offset * sizeof(GLushort)), itr->instances);
+		}
 	}
 }
 
-void ClipmapGrid::CreateVertexBuffers()
-{
-	//////////////////////////////////////////////////////////////////////////
-	//Create VAO
-	glGenVertexArrays(1, &this->vao);
-	//Bind VAO
-	glBindVertexArray(this->vao);
-
-	//////////////////////////////////////////////////////////////////////////
-	//Vertex VBO
-	//Create VBO on the GPU to store the vertex data
-	glGenBuffers(1, &this->vertex_buffer);
-	//Bind VBO to make it current
-	glBindBuffer(GL_ARRAY_BUFFER, this->vertex_buffer);
-	//Set the usage type, allocate VRAM and send the vertex data to the GPU
-	glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vector3), &this->vertices[0], GL_DYNAMIC_DRAW);
-
-	//Sets up which shader attribute will received the data. How many elements will form a vertex, type etc
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	//Enable the shader attribute to receive data
-	glEnableVertexAttribArray(0);
-
-	////////////////////////////////////////////////////////////////////////////
-	////UV VBO
-	////Create VBO on the GPU to store the vertex data
-	//glGenBuffers(1, &this->uv_vbo);
-	////Bind VBO to make it current
-	//glBindBuffer(GL_ARRAY_BUFFER, this->uv_vbo);
-	////Set the usage type, allocate VRAM and send the vertex data to the GPU
-	//glBufferData(GL_ARRAY_BUFFER, this->uvs.size() * sizeof(Vector2), &this->uvs[0], GL_DYNAMIC_DRAW);
-
-	////Sets up which shader attribute will receive the data. How many elements will form a vertex, type etc
-	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	////Enable the shader attribute to receive data
-	//glEnableVertexAttribArray(1);
-
-	////////////////////////////////////////////////////////////////////////////
-	////Normal VBO
-	////Create VBO on the GPU to store the vertex data
-	//glGenBuffers(1, &this->normal_vbo);
-	////Bind VBO to make it current
-	//glBindBuffer(GL_ARRAY_BUFFER, this->normal_vbo);
-	////Set the usage type, allocate VRAM and send the vertex data to the GPU
-	//glBufferData(GL_ARRAY_BUFFER, this->normals.size() * sizeof(Vector3), &this->normals[0], GL_STATIC_DRAW);
-
-	////Sets up which shader attribute will receive the data. How many elements will form a vertex, type etc
-	//glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	////Enable the shader attribute to receive data
-	//glEnableVertexAttribArray(2);
-
-	//////////////////////////////////////////////////////////////////////////
-	//Indices EBO
-	//Create EBO on the GPU to store the vertex data
-	glGenBuffers(1, &this->index_buffer);
-	//Bind EBO to make it current
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->index_buffer);
-	//Set the usage type, allocate VRAM and send the vertex data to the GPU
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(unsigned int), &this->indices[0], GL_DYNAMIC_DRAW);
-
-	//////////////////////////////////////////////////////////////////////////
-	//Unbind the VAO now that the VBOs have been set up
-	glBindVertexArray(0);
-}
 
 void ClipmapGrid::SetScale(float factor)
 {

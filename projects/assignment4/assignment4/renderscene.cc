@@ -120,8 +120,10 @@ RenderScene::Open()
 	
 		ShaderManager::Instance()->AddShaderProgram("shaders/simple_vs.glsl", "shaders/simple_fs.glsl", "main");
 		ShaderManager::Instance()->AddShaderProgram("shaders/clipmaps_vs.glsl", "shaders/clipmaps_fs.glsl", "clipmaps");
-		ShaderManager::Instance()->ChangeShader("clipmaps");
-		glUniformBlockBinding(ShaderManager::Instance()->shaders["clipmaps"], glGetUniformBlockIndex(ShaderManager::Instance()->shaders["clipmaps"], "InstanceData"), 0);
+		//// get the index layout for InstanceData
+		//GLuint instance_data_index = glGetUniformBlockIndex(ShaderManager::Instance()->shaders["clipmaps"], "InstanceData");
+		//// bind the uniform block to binding point
+		//glUniformBlockBinding(ShaderManager::Instance()->shaders["clipmaps"], instance_data_index, 0);
 		ShaderManager::Instance()->AddShaderProgram("shaders/text_vs.glsl", "shaders/text_fs.glsl", "text");
 
 		//Objects
@@ -203,13 +205,11 @@ RenderScene::Run()
 
 		TextRenderer::Instance()->SetColor(1, 1, 0);
 		TextRenderer::Instance()->RenderText(fps, 20.f, this->window_height - 25.f, 1);
-		TextRenderer::Instance()->SetColor(1, 1, 0);
-		TextRenderer::Instance()->RenderText(objects, 20.f, this->window_height - 50.f, 1);
-		//TextRenderer::Instance()->RenderText("Toggle Scenes: 1-3", 20.f, this->window_height - 100.f, 1);
-		//TextRenderer::Instance()->RenderText("Toggle Wireframe: 4", 20.f, this->window_height - 125.f, 1);
-		//TextRenderer::Instance()->RenderText("Pause: Spacebar", 20.f, this->window_height - 150.f, 1);
-		//TextRenderer::Instance()->RenderText("Toggle Bounding Box: Q", 20.f, this->window_height - 175.f, 1);
-		//TextRenderer::Instance()->RenderText("Spawn Cube: E", 20.f, this->window_height - 200.f, 1);
+		TextRenderer::Instance()->SetColor(0, 1, 1);
+		TextRenderer::Instance()->RenderText("Block: Red", 20.f, this->window_height - 50.f, 1);
+		TextRenderer::Instance()->RenderText("Ring Fixup: Green", 20.f, this->window_height - 75.f, 1);
+		TextRenderer::Instance()->RenderText("Degenerate Triangles: Blue", 20.f, this->window_height - 100.f, 1);
+		TextRenderer::Instance()->RenderText("Trim: Yellow", 20.f, this->window_height - 125.f, 1);
 
 		this->window->SwapBuffers();
 
@@ -295,8 +295,6 @@ void RenderScene::UpdateClipmaps()
 void RenderScene::RenderClipmaps()
 {
 	ShaderManager::Instance()->ChangeShader("clipmaps");
-	Vector2 camera_pos = Vector2(this->delta_time) * Vector2(0.5f, 1.0f);
-
 	this->clipmaps->update_level_offsets(Vector2(this->camera->position[0], this->camera->position[2]));
 	//update heightmap
 

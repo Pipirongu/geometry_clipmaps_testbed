@@ -87,7 +87,7 @@ private:
 		Vector2 texture_offset; // Offset for texture coordinates, similar to offset. Also prescaled.
 		float scale; // Scale factor of local offsets (vertex coordinates).
 		float level; // Clipmap LOD level of block.
-		float debug_color = 1;
+		//float debug_color = 1;
 	};
 
 	//blocks
@@ -122,6 +122,7 @@ private:
 		size_t uniform_buffer_offset;
 		unsigned int indices;
 		unsigned int instances;
+		Vector3 debug_color;
 	};
 	std::vector<DrawInfo> draw_list;
 
@@ -147,6 +148,4 @@ private:
 	DrawInfo get_draw_info_trim_top_left(InstanceData *instance_data);
 	DrawInfo get_draw_info_trim_bottom_right(InstanceData *instance_data);
 	DrawInfo get_draw_info_trim_bottom_left(InstanceData *instance_data);
-
-	void CreateVertexBuffers();
 };

@@ -29,10 +29,10 @@
 #define CLIPMAP_SIZE 16
 
 // Number of LOD levels for clipmap.
-#define CLIPMAP_LEVELS 10
+#define CLIPMAP_LEVELS 4
 
 // Distance between vertices.
-#define CLIPMAP_SCALE 0.25f
+#define CLIPMAP_SCALE 0.5f
 
 namespace Graphics
 {
