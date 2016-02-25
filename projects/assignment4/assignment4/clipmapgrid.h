@@ -133,6 +133,9 @@ private:
 
 	typedef bool(*TrimConditional)(const Vector2& offset);
 
+	GLsync syncObj;
+	InstanceData* data;
+
 	Vector2 get_offset_level(const Vector2& camera_pos, unsigned int level); //snapping grid
 	void update_draw_list(DrawInfo& info, size_t& ubo_offset);
 	DrawInfo get_draw_info_blocks(InstanceData *instance_data);

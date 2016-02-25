@@ -30,6 +30,7 @@ void ShaderManager::ChangeShader(std::string name_of_shader)
 		printf("Couldn't Find Shader");
 		return;
 	}
+
 	GLuint shader_id = this->shaders[name_of_shader];
 	glUseProgram(shader_id);
 
