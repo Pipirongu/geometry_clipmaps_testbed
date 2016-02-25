@@ -12,8 +12,8 @@ struct PerInstanceData
 	vec2 texture_scale;
 	vec2 texture_offset; // Same as for world-space offset/scale, just for texture coordinates
 	float scale; // Scaling factor for vertex offsets (per-instance)
-	float level; // LOD-level to use when sampling heightmap
-	//float debug_color;
+	float level; // lod-level to use when sampling heightmap
+	vec3 debug_color;
 };
 
 layout(std140, binding = 0) uniform InstanceData // Use std140 packing rules for uniform block. set binding point to 0
@@ -29,7 +29,7 @@ layout(location = LOCATION_VERTEX) in vec2 aVertex;
 // out float vHeight;
 // out vec2 vLod;
 // out float vFog;
-//out float frag_debug_color;
+out vec3 frag_debug_color;
 out float height_value;
 
 void main()
@@ -37,11 +37,11 @@ void main()
 	vec2 local_offset = aVertex * instance[gl_InstanceID].scale;
 	vec2 pos = instance[gl_InstanceID].offset + local_offset;
 
-	float level = instance[gl_InstanceID].level;
-	vec2 tex_offset = (aVertex + 0.5) * instance[gl_InstanceID].texture_scale; // 0.5 offset to sample mid-texel.
-	vec2 texcoord = instance[gl_InstanceID].texture_offset + tex_offset;
+	// float level = instance[gl_InstanceID].level;
+	// vec2 tex_offset = (aVertex + 0.5) * instance[gl_InstanceID].texture_scale; // 0.5 offset to sample mid-texel.
+	// vec2 texcoord = instance[gl_InstanceID].texture_offset + tex_offset;
 
-	vec4 height = textureLod(height_map, texcoord, level);
+	// vec4 height = textureLod(height_map, texcoord, level);
 	//vec2 heights = texture(height_map, vec3(texcoord, level)).rg;
 
 	// Find blending factors for heightmap. The detail level must not have any discontinuities or it shows as 'artifacts'.
@@ -52,12 +52,12 @@ void main()
 
 	//height = clamp(height, HEIGHTMAP_MIN, HEIGHTMAP_MAX); // To ensure frustum culling assumptions are met.
 
-	vec4 vert = vec4(pos.x, 0*height.x, pos.y, 1.0);
+	vec4 vert = vec4(pos.x, 0, pos.y, 1.0);
 
 	gl_Position = mvp * vert;
 	
-	//frag_debug_color = instance[gl_InstanceID].debug_color;
-	height_value = height.x;
+	frag_debug_color = instance[gl_InstanceID].debug_color;
+	// height_value = height.x;
 	
 	//vHeight = height;
 	//vLod = vec2(level, lod_factor);

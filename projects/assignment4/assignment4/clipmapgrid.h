@@ -80,6 +80,7 @@ private:
 		Vector2 range;
 	};
 
+	// a float consumes N unit and alignment is 4N
 	struct InstanceData
 	{
 		Vector2 offset; // Offset of the block in XZ plane (world space). This is prescaled.
@@ -87,7 +88,8 @@ private:
 		Vector2 texture_offset; // Offset for texture coordinates, similar to offset. Also prescaled.
 		float scale; // Scale factor of local offsets (vertex coordinates).
 		float level; // Clipmap LOD level of block.
-		//float debug_color = 1;
+		Vector3 debug_color;
+		float padding; //padding for debug_color
 	};
 
 	//blocks
@@ -122,7 +124,6 @@ private:
 		size_t uniform_buffer_offset;
 		unsigned int indices;
 		unsigned int instances;
-		Vector3 debug_color;
 	};
 	std::vector<DrawInfo> draw_list;
 

@@ -587,9 +587,8 @@ void ClipmapGrid::update_level_offsets(const Vector2& camera_pos)
 ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_horiz_fixup(InstanceData *instances)
 {
 	DrawInfo info;
-	info.debug_color = Vector3(0, 1, 0);
 	InstanceData instance;
-	//instance.debug_color.Insert(1, 0, 0);
+	instance.debug_color = Vector3(0, 1, 0);
 
 	// Horizontal
 	info.index_buffer_offset = horizontal.offset;
@@ -642,9 +641,8 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_horiz_fixup(InstanceData *insta
 ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_vert_fixup(InstanceData *instances)
 {
 	DrawInfo info;
-	info.debug_color = Vector3(0, 1, 0);
 	InstanceData instance;
-	//instance.debug_color.Insert(1, 0, 0);
+	instance.debug_color = Vector3(0, 1, 0);
 
 	// Vertical
 	info.index_buffer_offset = vertical.offset;
@@ -688,12 +686,12 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_vert_fixup(InstanceData *instan
 ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_degenerate(InstanceData *instances, const Block& block, const Vector2& offset, const Vector2& ring_offset)
 {
 	DrawInfo info;
-	info.debug_color = Vector3(0, 0, 1);
 	info.instances = 0;
 	info.index_buffer_offset = block.offset;
 	info.indices = block.count;
+
 	InstanceData instance;
-	//instance.debug_color.Insert(1, 0, 0);
+	instance.debug_color = Vector3(0, 0, 1);
 	instance.texture_scale = 1.0f / level_size;
 
 	// No need to connect the last clipmap level to next level (there is none).
@@ -748,13 +746,12 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_degenerate_bottom(InstanceData 
 ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_trim_full(InstanceData *instances)
 {
 	DrawInfo info;
-	info.debug_color = Vector3(1, 1, 0);
 	info.index_buffer_offset = trim_full.offset;
 	info.indices = trim_full.count;
 	info.instances = 0;
 
 	InstanceData instance;
-	//instance.debug_color.Insert(1, 0, 0);
+	instance.debug_color = Vector3(1, 1, 0);
 	instance.texture_scale = 1.0f / level_size;
 	instance.level = 1;
 	instance.offset = level_offsets[1];
@@ -775,7 +772,6 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_trim_full(InstanceData *instanc
 ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_trim(InstanceData *instances, const Block& block, TrimConditional cond)
 {
 	DrawInfo info;
-	info.debug_color = Vector3(1, 1, 0);
 	info.index_buffer_offset = block.offset;
 	info.indices = block.count;
 	info.instances = 0;
@@ -792,11 +788,11 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_trim(InstanceData *instances, c
 		// to apply a trim region depending on how camera snapping is done in get_offset_level().
 		// A function pointer is introduced here so we can check if a particular trim type
 		// should be used for this level. Only one conditional will return true for a given level.
-		//if (!cond(offset_prev_level - offset_current_level))
-		//	continue;
+		if (!cond(offset_prev_level - offset_current_level))
+			continue;
 
 		InstanceData instance;
-		//instance.debug_color.Insert(1, 0, 0);
+		instance.debug_color = Vector3(1, 1, 0);
 		instance.texture_scale = 1.0f / level_size;
 		instance.level = i;
 		instance.offset = level_offsets[i];
@@ -862,12 +858,12 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_blocks(InstanceData *instances)
 {
 	// Special case for level 0, here we draw the base quad in a tight 4x4 grid. This needs to be padded with a full trim (get_draw_info_trim_full()).
 	DrawInfo info;
-	info.debug_color = Vector3(1, 0, 0);
 	info.instances = 0;
 	info.index_buffer_offset = block.offset;
 	info.indices = block.count;
 
 	InstanceData instance;
+	instance.debug_color = Vector3(1, 0, 0);
 	instance.scale = clipmap_scale;
 	instance.texture_scale = 1.0f / level_size;
 
@@ -883,7 +879,7 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_blocks(InstanceData *instances)
 
 			//if (intersects_frustum(instance.offset, block.range, 0))
 			//{
-				*instances++ = instance;
+				*instances++ = instance; //moves pointer once to next available index
 				info.instances++;
 			//}
 		}
@@ -942,7 +938,7 @@ static inline T *buffer_offset(T *buffer, size_t offset)
 // Round up to nearest aligned offset.
 static inline unsigned int realign_offset(size_t offset, size_t align)
 {
-	return (offset + align - 1) & ~(align - 1); // bit operator and and not
+	return (offset + align - 1) & ~(align - 1);
 }
 
 void ClipmapGrid::update_draw_list(DrawInfo& info, size_t& uniform_buffer_offset)
@@ -976,7 +972,7 @@ void ClipmapGrid::update_draw_list()
 	// of blocks. The blocks are instanced as necessary in the get_draw_info* calls.
 
 	// Main blocks
-	info = get_draw_info_blocks(buffer_offset(data, uniform_buffer_offset));
+	info = get_draw_info_blocks(buffer_offset(data, uniform_buffer_offset)); //buffer_offset typecast instance pointer to char pointer and offsets it. It's PerInstanceData array in shader that gets modified.
 	update_draw_list(info, uniform_buffer_offset);
 
 	// Vertical ring fixups
@@ -1034,11 +1030,9 @@ void ClipmapGrid::render_draw_list()
 	for (std::vector<DrawInfo>::const_iterator itr = draw_list.begin(); itr != draw_list.end(); ++itr)
 	{
 		if (itr->instances){	
-			// Bind uniform buffer at correct offset.
+			// Bind uniform buffer at same binding point as in shader
 			//glBindBufferBase(GL_UNIFORM_BUFFER, 0, uniform_buffer);
 			glBindBufferRange(GL_UNIFORM_BUFFER, 0, uniform_buffer, itr->uniform_buffer_offset, realign_offset(itr->instances * sizeof(InstanceData), uniform_buffer_align));
-
-			glUniform3fv(ShaderManager::Instance()->debug_color_loc, 1, &itr->debug_color[0]);
 
 			// Draw all instances.
 			glDrawElementsInstanced(GL_TRIANGLE_STRIP, itr->indices, GL_UNSIGNED_SHORT, reinterpret_cast<const GLvoid*>(itr->index_buffer_offset * sizeof(GLushort)), itr->instances);

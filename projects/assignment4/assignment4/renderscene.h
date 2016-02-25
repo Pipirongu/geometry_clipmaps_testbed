@@ -32,7 +32,7 @@
 #define CLIPMAP_LEVELS 4
 
 // Distance between vertices.
-#define CLIPMAP_SCALE 0.5f
+#define CLIPMAP_SCALE 0.25f
 
 namespace Graphics
 {
