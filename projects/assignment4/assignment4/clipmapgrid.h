@@ -20,41 +20,10 @@ public:
 	/// Destructor
 	~ClipmapGrid(void);
 	
-	/// Updates the model/view matrix and then calls its childrens' update
-	void Update(Matrix44& view);
 	void update_level_offsets(const Vector2& camera_pos);
 
 	/// Does nothing with this class. Just calls its childrens' update and forwards the arguments
 	void Render(const Matrix44& projection, const Matrix44& view);
-
-	/// Returns the model
-	Matrix44 GetModel();
-
-	/// Multiply the transform's translation matrix with a Translation matrix
-	void Translate(float x, float y, float z);
-	/// Multiply the transform's translation matrix with a Translation matrix
-	void Translate(Vector3 vector);
-	
-	void SetPosition( float x, float y, float z );
-	void SetPosition( Vector3 vector);
-	
-	/// Multiply the transform's scaling matrix with a Scaling matrix. Saves the scale factor so the bounding sphere can be scaled elsewhere in the program. Scales equally for xyz axis
-	void Scale(float factor);
-	/// Sets the scale values in the transform's matrix to factor
-	/// Sets the scaling matrix to identity before multiplying it with a Scaling matrix. Saves the scale factor so the bounding sphere can be scaled elsewhere in the program. Scales equally for xyz axis
-	void SetScale(float factor);
-	/// Multiply the scaling matrix with a Scaling matrix. Doesn't have to scale uniformly
-	void Scale(float x, float y, float z);
-	/// Multiply the scaling matrix with a Scaling matrix. Doesn't have to scale uniformly
-	void Scale (Vector3 vector);
-
-	//My Physics Stuff
-	Vector3 position;
-
-
-	//Position and scale as just vectors
-	Matrix44 model;
-	Matrix44 scaling;
 
 private:
 	//vertices, uvs, normals, indices

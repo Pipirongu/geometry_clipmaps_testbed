@@ -191,7 +191,6 @@ RenderScene::Run()
 		this->root->Update(this->view); //updates the view matrix
 		//this->RenderPass();
 
-		this->UpdateClipmaps();
 		this->RenderClipmaps();
 
 		ShaderManager::Instance()->ChangeShader("text");
@@ -285,11 +284,6 @@ void RenderScene::CameraControls()
 
 	//updates the player
 	this->camera->UpdateCameraMatrix(); //update camera matrix
-}
-
-void RenderScene::UpdateClipmaps()
-{
-	this->clipmaps->Update(this->view);
 }
 
 void RenderScene::RenderClipmaps()

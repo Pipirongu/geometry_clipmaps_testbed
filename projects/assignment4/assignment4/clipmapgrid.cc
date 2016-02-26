@@ -22,16 +22,6 @@ ClipmapGrid::~ClipmapGrid(void)
 {
 }
 
-//------------------------------------------------------------------------------
-/**
-First parameter is only used if the transform instance represents a camera. The view will store the inverse of the parents model matrix
-The second parameter is the parent's model matrix
-*/
-void ClipmapGrid::Update(Matrix44& view)
-{
-	this->model = Matrix44::Translation(Vector3(0,0,0)) * this->scaling; //A rotation is applied first to make the object rotate around itself.	
-}
-
 void ClipmapGrid::Render(const Matrix44& projection, const Matrix44& view)
 {	
 	/************************************************************************/
@@ -44,7 +34,7 @@ void ClipmapGrid::Render(const Matrix44& projection, const Matrix44& view)
 	/* Render Draw List                                                     */
 	/************************************************************************/
 	//Form the mvp matrix from matrices supplies with draw function
-	Matrix44 model_matrix = this->model;
+	Matrix44 model_matrix = Matrix44::Translation(Vector3(0, 0, 0));
 	Matrix44 mvp = projection * view * model_matrix;
 
 
@@ -70,39 +60,6 @@ void ClipmapGrid::Render(const Matrix44& projection, const Matrix44& view)
 	//! [Placeholder render code]
 }
 
-Matrix44 ClipmapGrid::GetModel()
-{
-	return this->model;
-}
-
-void ClipmapGrid::SetPosition(float x, float y, float z)
-{
-	this->position.Insert(x, y, z);
-	//this->translation.Translate(x, y, z);
-}
-
-
-void ClipmapGrid::SetPosition(Vector3 vector)
-{
-	this->position = vector;
-	//this->translation.Translate(vector);
-}
-
-void ClipmapGrid::Translate(float x, float y, float z)
-{
-	this->position += Vector3(x, y, z);
-}
-
-void ClipmapGrid::Translate(Vector3 vector)
-{
-	this->position += vector;
-}
-
-void ClipmapGrid::Scale(float factor)
-{
-	this->scaling.Scale(factor);
-}
-
 void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 {
 	// The ground consists of many smaller tesselated quads.
@@ -120,6 +77,7 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	unsigned int ring_vertices = size * 3;
 	num_vertices += 2 * ring_vertices;
 
+
 	// Trim regions are thin stripes which surround blocks from the lower LOD level.
 	// Need (2 * size + 1)-by-2 vertices. One stripe for each four sides are needed.
 	unsigned int trim_vertices = (2 * size + 1) * 2;
@@ -135,18 +93,19 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	unsigned int degenerate_vertices = 2 * (size - 1) * 5;
 	num_vertices += degenerate_vertices * 2;
 
-	GLubyte *vertices = new GLubyte[2 * num_vertices];
+	//GLubyte *vertices = new GLubyte[2 * num_vertices];
+	std::vector<GLubyte> vertices;
 	//! [Generating vertex buffer]
-	GLubyte *pv = vertices;
+	//GLubyte *pv = vertices;
 
 	// Block
 	for (unsigned int z = 0; z < size; z++)
 	{
 		for (unsigned int x = 0; x < size; x++)
 		{
-			pv[0] = x;
-			pv[1] = z;
-			pv += 2;
+			vertices.push_back(x);
+			vertices.push_back(z);
+			//pv += 2;
 		}
 	}
 	//! [Generating vertex buffer]
@@ -156,9 +115,9 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	{
 		for (unsigned int x = 0; x < 3; x++)
 		{
-			pv[0] = x;
-			pv[1] = z;
-			pv += 2;
+			vertices.push_back(x);
+			vertices.push_back(z);
+			//pv += 2;
 		}
 	}
 
@@ -167,9 +126,9 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	{
 		for (unsigned int x = 0; x < size; x++)
 		{
-			pv[0] = x;
-			pv[1] = z;
-			pv += 2;
+			vertices.push_back(x);
+			vertices.push_back(z);
+			//pv += 2;
 		}
 	}
 
@@ -179,9 +138,9 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	{
 		for (unsigned int x = 0; x < 2 * size + 1; x++)
 		{
-			pv[0] = x;
-			pv[1] = z;
-			pv += 2;
+			vertices.push_back(x);
+			vertices.push_back(z);
+			//pv += 2;
 		}
 	}
 
@@ -190,9 +149,9 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	{
 		for (unsigned int z = 0; z < 2 * size + 1; z++)
 		{
-			pv[0] = x + 2 * size - 1;
-			pv[1] = z;
-			pv += 2;
+			vertices.push_back(x + 2 * size - 1);
+			vertices.push_back(z);
+			//pv += 2;
 		}
 	}
 
@@ -201,9 +160,9 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	{
 		for (unsigned int x = 0; x < 2 * size + 1; x++)
 		{
-			pv[0] = 2 * size - x;
-			pv[1] = z + 2 * size - 1;
-			pv += 2;
+			vertices.push_back(2 * size - x);
+			vertices.push_back(z + 2 * size - 1);
+			//pv += 2;
 		}
 	}
 
@@ -212,166 +171,150 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	{
 		for (unsigned int z = 0; z < 2 * size + 1; z++)
 		{
-			pv[0] = x;
-			pv[1] = 2 * size - z;
-			pv += 2;
+			vertices.push_back(x);
+			vertices.push_back(2 * size - z);
+			//pv += 2;
 		}
 	}
 
-	// Degenerate triangles.
-	// Left, right
-	for (unsigned int y = 0; y < (size - 1) * 2; y++)
-	{
-		pv[0] = 0;
-		pv[1] = y * 2;
-		pv[2] = 0;
-		pv[3] = y * 2;
-		pv[4] = 0;
-		pv[5] = y * 2 + 1;
-		pv[6] = 0;
-		pv[7] = y * 2 + 2;
-		pv[8] = 0;
-		pv[9] = y * 2 + 2;
-		pv += 10;
-	}
+	//// Degenerate triangles.
+	//// Left, right
+	//for (unsigned int y = 0; y < (size - 1) * 2; y++)
+	//{
+	//	pv[0] = 0;
+	//	pv[1] = y * 2;
+	//	pv[2] = 0;
+	//	pv[3] = y * 2;
+	//	pv[4] = 0;
+	//	pv[5] = y * 2 + 1;
+	//	pv[6] = 0;
+	//	pv[7] = y * 2 + 2;
+	//	pv[8] = 0;
+	//	pv[9] = y * 2 + 2;
+	//	pv += 10;
+	//}
 
-	// Top, bottom
-	for (unsigned int x = 0; x < (size - 1) * 2; x++)
-	{
-		pv[0] = x * 2;
-		pv[1] = 0;
-		pv[2] = x * 2;
-		pv[3] = 0;
-		pv[4] = x * 2 + 1;
-		pv[5] = 0;
-		pv[6] = x * 2 + 2;
-		pv[7] = 0;
-		pv[8] = x * 2 + 2;
-		pv[9] = 0;
-		pv += 10;
-	}
+	//// Top, bottom
+	//for (unsigned int x = 0; x < (size - 1) * 2; x++)
+	//{
+	//	pv[0] = x * 2;
+	//	pv[1] = 0;
+	//	pv[2] = x * 2;
+	//	pv[3] = 0;
+	//	pv[4] = x * 2 + 1;
+	//	pv[5] = 0;
+	//	pv[6] = x * 2 + 2;
+	//	pv[7] = 0;
+	//	pv[8] = x * 2 + 2;
+	//	pv[9] = 0;
+	//	pv += 10;
+	//}
 
 	// Right and bottom share vertices with left and top respectively.
 
 	glGenBuffers(1, &vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, 2 * num_vertices * sizeof(GLubyte), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLubyte), &vertices[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	delete[] vertices;
-
-
-	////Block
-	//for (unsigned int z = 0; z < size; z++) // rows
-	//{
-	//	for (unsigned int x = 0; x < size; x++) // cols
-	//	{
-	//		Vector3 vertex1(x, 0, z);
-	//		this->vertices.push_back(vertex1);
-
-	//		//Vector2 uv1(x / (float)width, z / (float)height);
-	//		//this->uvs.push_back(uv1);
-	//	}
-	//}
+	//delete[] vertices;
 }
 
 // Returns number of indices needed to create a triangle stripped mesh using generate_block_indices() below.
 static unsigned int block_index_count(unsigned int width, unsigned int height)
 {
 	unsigned int strips = height - 1;
-	return (height-1) * + (2*width-1)+1;// strips * (2 * width - 1) + 1;
+	return (height * width) + ((width - 2) * 3);// strips * (2 * width - 1) + 1;
 }
 
 //! [Generating index buffer]
-static GLushort *generate_block_indices(GLushort *pi, unsigned int vertex_buffer_offset, unsigned int width, unsigned int height)
+static int generate_block_indices(GLushort *pi, unsigned int vertex_buffer_offset, unsigned int width, unsigned int height, std::vector<GLushort>& out)
 {
-	// Stamp out triangle strips back and forth.
-	int pos = vertex_buffer_offset;
-	unsigned int strips = height - 1;
-
-	int sizeCount = 0;
-	// After even indices in a strip, always step to next strip.
-	// After odd indices in a strip, step back again and one to the right or left.
-	// Which direction we take depends on which strip we're generating.
-	// This creates a zig-zag pattern.
-	for (unsigned int z = 0; z < strips; z++)
-	{
-		//Skip the first vertex of the grid(we don't want a degenerate triangle if it's the start or end vertex. Which is why the loop is rows-1)
-		if (z > 0) {
-			// Degenerate begin: repeat first vertex
-			*pi++ = z * height;
-			sizeCount++;
-		}
-
-		for (int x = 0; x < width; x++) { // cols
-			// One part of the strip
-			*pi++ = (z * height) + x;
-			*pi++ = ((z + 1) * height) + x;
-			sizeCount += 2;
-		}
-
-		//no skip, adds the last vertex of the strip as a degenerate, which will connect with the next row's degenerate vertex)
-		if (z < height - 2) {
-			// Degenerate end: repeat last vertex
-			*pi++ = ((z + 1) * height) + (width - 1);
-			sizeCount++;
-		}
-	}
-	printf("sizeof indices %d", sizeCount);
-	// There is no new strip, so complete the block here.
-	//*pi++ = pos;
-
-	// Return updated index buffer pointer.
-	// More explicit than taking reference to pointer.
-	return pi;
-
-	//for (int y = 0; y < size - 1; y++) { //rows
-	//	//Skip the first vertex of the grid(we don't want a degenerate triangle if it's the start or end vertex. Which is why the loop is rows-1)
-	//	if (y > 0) {
-	//		// Degenerate begin: repeat first vertex
-	//		this->indices.push_back(y * size);
-	//	}
-
-	//	for (int x = 0; x < size; x++) { // cols
-	//		// One part of the strip
-	//		this->indices.push_back((y * size) + x);
-	//		this->indices.push_back(((y + 1) * size) + x);
-	//	}
-
-	//	//no skip, adds the last vertex of the strip as a degenerate, which will connect with the next row's degenerate vertex)
-	//	if (y < size - 2) {
-	//		// Degenerate end: repeat last vertex
-	//		this->indices.push_back(((y + 1) * size) + (size - 1));
-	//	}
-	//}
-
 	//// Stamp out triangle strips back and forth.
 	//int pos = vertex_buffer_offset;
 	//unsigned int strips = height - 1;
 
+	//int sizeCount = 0;
 	//// After even indices in a strip, always step to next strip.
 	//// After odd indices in a strip, step back again and one to the right or left.
 	//// Which direction we take depends on which strip we're generating.
 	//// This creates a zig-zag pattern.
 	//for (unsigned int z = 0; z < strips; z++)
 	//{
-	//	int step_even = width;
-	//	int step_odd = ((z & 1) ? -1 : 1) - step_even;
+	//	//Skip the first vertex of the grid(we don't want a degenerate triangle if it's the start or end vertex. Which is why the loop is rows-1)
+	//	if (z > 0) {
+	//		// Degenerate begin: repeat first vertex
+	//		out.push_back(z * height);
+	//		sizeCount++;
+	//	}
+	//		
+	//	for (int x = 0; x < width; x++) { // cols
+	//		// One part of the strip
+	//		out.push_back((z * height) + x);
+	//		out.push_back(((z + 1) * height) + x);
+	//		sizeCount += 2;
+	//	}
 
-	//	// We don't need the last odd index.
-	//	// The first index of the next strip will complete this strip.
-	//	for (unsigned int x = 0; x < 2 * width - 1; x++)
-	//	{
-	//		*pi++ = pos;
-	//		pos += (x & 1) ? step_odd : step_even;
+	//	//no skip, adds the last vertex of the strip as a degenerate, which will connect with the next row's degenerate vertex)
+	//	if (z < height - 2) {
+	//		// Degenerate end: repeat last vertex
+	//		out.push_back(((z + 1) * height) + (width - 1));
+	//		sizeCount++;
 	//	}
 	//}
+	//printf("sizeof indices %d", sizeCount);
 	//// There is no new strip, so complete the block here.
-	//*pi++ = pos;
+	////*pi++ = pos;
 
 	//// Return updated index buffer pointer.
 	//// More explicit than taking reference to pointer.
+	//return sizeCount;
+
+	// Stamp out triangle strips back and forth.
+	int pos = vertex_buffer_offset;
+	unsigned int strips = height - 1;
+
+	int sizeCount = 0;
+
+	// After even indices in a strip, always step to next strip.
+	// After odd indices in a strip, step back again and one to the right or left.
+	// Which direction we take depends on which strip we're generating.
+	// This creates a zig-zag pattern.
+	for (unsigned int z = 0; z < strips; z++)
+	{
+		int step_even = width;
+		int step_odd;
+		//int step_odd = ((z & 1) ? -1 : 1) - step_even;
+		if (z & 1){
+			step_odd = -1 - step_even;
+		}
+		else{
+			step_odd = 1 - step_even;
+		}
+
+		// We don't need the last odd index.
+		// The first index of the next strip will complete this strip.
+		for (unsigned int x = 0; x < 2 * width - 1; x++)
+		{
+			out.push_back(pos);
+			sizeCount++;
+			//pos += (x & 1) ? step_odd : step_even;
+			if (x & 1){
+				pos += step_odd;
+			}
+			else{
+				pos += step_even;
+			}
+		}
+	}
+	// There is no new strip, so complete the block here.
+	out.push_back(pos);
+	sizeCount++;
+
+	// Return updated index buffer pointer.
+	// More explicit than taking reference to pointer.
 	//return pi;
+	return sizeCount;
 }
 //! [Generating index buffer]
 
@@ -379,10 +322,6 @@ void ClipmapGrid::setup_index_buffer(unsigned int size)
 {
 	unsigned int vertex_buffer_offset = 0;
 
-	block.count = block_index_count(size, size);
-
-	vertical.count = block_index_count(3, size);
-	horizontal.count = block_index_count(size, 3);
 
 	unsigned int trim_region_indices = block_index_count(2 * size + 1, 2);
 	trim_full.count = 4 * trim_region_indices;
@@ -398,39 +337,45 @@ void ClipmapGrid::setup_index_buffer(unsigned int size)
 	num_indices = block.count;// +vertical.count + horizontal.count + trim_full.count + 4 * trim_top_left.count + 4 * degenerate_left.count;
 
 	//vector
-	GLushort *indices = new GLushort[num_indices];
-	GLushort *pi = indices;
+	//GLushort *indices = new GLushort[num_indices];
+	std::vector<GLushort> indices;
+	GLushort *pi = 0;
 
 	// Main block
-	block.offset = pi - indices;
-	pi = generate_block_indices(pi, vertex_buffer_offset, size, size); //count the indices, save them to block.count, fixup.count etc. offset should be first 0 but once we fill it with block offset is offset += block.count but we have to get the pointer address so we can convert to glvoid
+	//block.offset = pi - indices;
+	block.offset = 0;
+	block.count = generate_block_indices(pi, vertex_buffer_offset, size, size, indices);
 	vertex_buffer_offset += size * size;
 
 	//// Vertical fixup
 	//vertical.offset = pi - indices;
-	//pi = generate_block_indices(pi, vertex_buffer_offset, 3, size);
-	//vertex_buffer_offset += 3 * size;
-
-	//// Horizontal fixup
+	vertical.offset = block.count;
+	vertical.count = generate_block_indices(pi, vertex_buffer_offset, 3, size, indices);
+	vertex_buffer_offset += 3 * size;
+	
+	// Horizontal fixup
 	//horizontal.offset = pi - indices;
-	//pi = generate_block_indices(pi, vertex_buffer_offset, size, 3);
-	//vertex_buffer_offset += 3 * size;
+	horizontal.offset = block.count + vertical.count;
+	horizontal.count = generate_block_indices(pi, vertex_buffer_offset, size, 3, indices);
+	vertex_buffer_offset += 3 * size;
 
-	//// Full interior trim
-	//// All trims can be run after each other.
-	//// The vertex buffer is generated such that this creates a "ring".
-	//// The full trim is only used to connect clipmap level 0 to level 1. See Doxygen for more detail.
+	// Full interior trim
+	// All trims can be run after each other.
+	// The vertex buffer is generated such that this creates a "ring".
+	// The full trim is only used to connect clipmap level 0 to level 1. See Doxygen for more detail.
 	//trim_full.offset = pi - indices;
-	//unsigned int full_trim_offset = vertex_buffer_offset;
-	//unsigned int trim_vertices = (2 * size + 1) * 2;
-	//pi = generate_block_indices(pi, full_trim_offset, 2 * size + 1, 2); // Top
-	//full_trim_offset += trim_vertices;
-	//pi = generate_block_indices(pi, full_trim_offset, 2 * size + 1, 2); // Right
-	//full_trim_offset += trim_vertices;
-	//pi = generate_block_indices(pi, full_trim_offset, 2 * size + 1, 2); // Bottom
-	//full_trim_offset += trim_vertices;
-	//pi = generate_block_indices(pi, full_trim_offset, 2 * size + 1, 2); // Left
-	//full_trim_offset += trim_vertices;
+	trim_full.offset = block.count + vertical.count + horizontal.offset;
+	unsigned int full_trim_offset = vertex_buffer_offset;
+	unsigned int trim_vertices = (2 * size + 1) * 2;
+	trim_full.count = 0;
+	trim_full.count = 4 * generate_block_indices(pi, full_trim_offset, 2 * size + 1, 2, indices); // Top
+	full_trim_offset += trim_vertices;
+	generate_block_indices(pi, full_trim_offset, 2 * size + 1, 2, indices); // Right
+	full_trim_offset += trim_vertices;
+	generate_block_indices(pi, full_trim_offset, 2 * size + 1, 2, indices); // Bottom
+	full_trim_offset += trim_vertices;
+	generate_block_indices(pi, full_trim_offset, 2 * size + 1, 2, indices); // Left
+	full_trim_offset += trim_vertices;
 
 	//// Top-right interior trim
 	//// This is a half ring (L-shaped).
@@ -523,10 +468,10 @@ void ClipmapGrid::setup_index_buffer(unsigned int size)
 
 	glGenBuffers(1, &index_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, num_indices * sizeof(GLushort), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLushort), &indices[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	delete[] indices;
+	//delete[] indices;
 }
 
 void ClipmapGrid::setup_uniform_buffer()
@@ -1023,13 +968,13 @@ void ClipmapGrid::update_draw_list()
 	info = get_draw_info_blocks(buffer_offset(data, uniform_buffer_offset)); //buffer_offset typecast instance pointer to char pointer and offsets it. It's PerInstanceData array in shader that gets modified.
 	update_draw_list(info, uniform_buffer_offset);
 
-	//// Vertical ring fixups
-	//info = get_draw_info_vert_fixup(buffer_offset(data, uniform_buffer_offset));
-	//update_draw_list(info, uniform_buffer_offset);
+	// Vertical ring fixups
+	info = get_draw_info_vert_fixup(buffer_offset(data, uniform_buffer_offset));
+	update_draw_list(info, uniform_buffer_offset);
 
-	//// Horizontal ring fixups
-	//info = get_draw_info_horiz_fixup(buffer_offset(data, uniform_buffer_offset));
-	//update_draw_list(info, uniform_buffer_offset);
+	// Horizontal ring fixups
+	info = get_draw_info_horiz_fixup(buffer_offset(data, uniform_buffer_offset));
+	update_draw_list(info, uniform_buffer_offset);
 
 	///************************************************************************/
 	///*                                                                      */
@@ -1050,9 +995,9 @@ void ClipmapGrid::update_draw_list()
 	//info = get_draw_info_degenerate_bottom(buffer_offset(data, uniform_buffer_offset));
 	//update_draw_list(info, uniform_buffer_offset);
 
-	//// Full trim
-	//info = get_draw_info_trim_full(buffer_offset(data, uniform_buffer_offset));
-	//update_draw_list(info, uniform_buffer_offset);
+	// Full trim
+	info = get_draw_info_trim_full(buffer_offset(data, uniform_buffer_offset));
+	update_draw_list(info, uniform_buffer_offset);
 
 	//// Top-right trim
 	//info = get_draw_info_trim_top_right(buffer_offset(data, uniform_buffer_offset));
@@ -1089,21 +1034,4 @@ void ClipmapGrid::render_draw_list()
 			glDrawElementsInstanced(GL_TRIANGLE_STRIP, itr->indices, GL_UNSIGNED_SHORT, reinterpret_cast<const GLvoid*>(itr->index_buffer_offset * sizeof(GLushort)), itr->instances);
 		}
 	}
-}
-
-
-void ClipmapGrid::SetScale(float factor)
-{
-	this->scaling.SetToIdentity();
-	this->scaling.Scale(factor);
-}
-
-void ClipmapGrid::Scale(float x, float y, float z)
-{
-	this->scaling.Scale(x, y, z);
-}
-
-void ClipmapGrid::Scale(Vector3 vector)
-{
-	this->scaling.Scale(vector);
 }

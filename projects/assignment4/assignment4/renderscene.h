@@ -94,7 +94,6 @@ private:
 	RenderScene& operator=(const RenderScene&);
 	void AddPlaneToScene(bool is_kinematic, Vector3 position, float clipmap_scale, float degrees = 0, Vector3 axis = Vector3(1, 1, 1));
 	void RenderPass();
-	void UpdateClipmaps();
 	void RenderClipmaps();
 	void CameraControls();
 
