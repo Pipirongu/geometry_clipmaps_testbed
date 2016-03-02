@@ -284,6 +284,7 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 // Returns number of indices needed to create a triangle stripped mesh using generate_block_indices() below.
 static unsigned int block_index_count(unsigned int width, unsigned int height)
 {
+	//return (height - 1) * (2 * width) + (height - 2);
 	unsigned int strips = height - 1;
 	return strips * (2 * width - 1) + 1;
 }
@@ -296,6 +297,41 @@ static GLushort *generate_block_indices(GLushort *pi, unsigned int vertex_buffer
 	int pos = vertex_buffer_offset;
 	unsigned int strips = height - 1;
 
+	//for (int z = 0; z < height - 1; z++)
+	//{
+	//	// Even rows move left to right, odd rows move right to left.
+	//	if (z % 2 == 0)
+	//	{
+	//		// Even row
+	//		int x;
+	//		for (x = 0; x < width; x++)
+	//		{
+	//			*pi++ = x + (z * width);
+	//			*pi++ = x + (z * width) + width;
+	//		}
+	//		// Insert degenerate vertex if this isn't the last row
+	//		if (z != height - 2)
+	//		{
+	//			*pi++ = --x + (z * width);
+	//		}
+	//	}
+	//	else
+	//	{
+	//		// Odd row
+	//		int x;
+	//		for (x = width - 1; x >= 0; x--)
+	//		{
+	//			*pi++ = x + (z * width);
+	//			*pi++ = x + (z * width) + width;
+	//		}
+	//		// Insert degenerate vertex if this isn't the last row
+	//		if (z != height - 2)
+	//		{
+	//			*pi++ = ++x + (z * width);
+	//		}
+	//	}
+	//}
+
 	// After even indices in a strip, always step to next strip.
 	// After odd indices in a strip, step back again and one to the right or left.
 	// Which direction we take depends on which strip we're generating.
@@ -303,14 +339,27 @@ static GLushort *generate_block_indices(GLushort *pi, unsigned int vertex_buffer
 	for (unsigned int z = 0; z < strips; z++)
 	{
 		int step_even = width;
-		int step_odd = ((z & 1) ? -1 : 1) - step_even;
+		int step_odd;
+		//int step_odd = ((z & 1) ? -1 : 1) - step_even;
+		if (z % 2){
+			step_odd = -1 - step_even;
+		}
+		else{
+			step_odd = 1 - step_even;
+		}
 
 		// We don't need the last odd index.
 		// The first index of the next strip will complete this strip.
 		for (unsigned int x = 0; x < 2 * width - 1; x++)
 		{
 			*pi++ = pos;
-			pos += (x & 1) ? step_odd : step_even;
+			//pos += (x & 1) ? step_odd : step_even;
+			if (x % 2){
+				pos += step_odd;
+			}
+			else{
+				pos += step_even;
+			}
 		}
 	}
 	// There is no new strip, so complete the block here.
