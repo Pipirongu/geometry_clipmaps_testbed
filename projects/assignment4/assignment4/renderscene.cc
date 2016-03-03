@@ -57,10 +57,6 @@ RenderScene::Open()
 	// key callback
 	this->window->SetKeyPressFunction([this](int32 key, int32 scancode, int32 action, int32 mods)
 	{
-		if (key == GLFW_KEY_1 && action == GLFW_PRESS){
-			plane_mesh->STEP_SIZE *= 2;
-			plane_mesh->UpdateNestedRegularGrid(60, 60);
-		}
 		if (key == GLFW_KEY_4 && action == GLFW_PRESS){
 			this->wireframe_rendering_toggle++;
 			if (this->wireframe_rendering_toggle == 2){
@@ -111,7 +107,7 @@ RenderScene::Open()
 
 	if (this->window->Open())
 	{
-		glfwSwapInterval(0);
+		glfwSwapInterval(1);
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
@@ -155,12 +151,6 @@ RenderScene::Open()
 		int width, height;
 		this->heightmap = new Texture;
 		this->heightmap->LoadHeightmap("textures/mountains.png", width, height);
-		this->plane_mesh = new Mesh;
-		//this->plane_mesh->GenerateNestedRegularGrid(width, height);
-		this->plane_mesh->GenerateNestedRegularGrid(15, 15);
-
-		//this->AddPlaneToScene(true, Vector3(0, 0, 0), 1);
-		//this->AddPlaneToScene(true, Vector3(0, 0, 0), 2);
 
 		this->is_open = true;
 		return true;
@@ -214,21 +204,6 @@ RenderScene::Run()
 
 	}
 	this->window->Close();
-}
-
-void RenderScene::AddPlaneToScene(bool is_kinematic, Vector3 position, float clipmap_scale, float degrees, Vector3 axis)
-{
-	RigidBody* rigidbody = new RigidBody;
-	rigidbody->SetPosition(position);
-	rigidbody->Rotate(degrees, axis);
-	rigidbody->SetScale(clipmap_scale);
-
-	rigidbody->SetMesh(this->plane_mesh);
-	//rigidbody->SetTexture(this->rigidbody_texture);
-	rigidbody->heightmap = this->heightmap;
-
-	this->root->AddChildNode(rigidbody);
-	this->object_list[rigidbody->ID()] = rigidbody;
 }
 
 void RenderScene::RenderPass()
@@ -291,6 +266,9 @@ void RenderScene::RenderClipmaps()
 	ShaderManager::Instance()->ChangeShader("clipmaps");
 	//this->clipmaps->update_level_offsets(Vector2(0,0));
 	this->clipmaps->update_level_offsets(Vector2(this->camera->position[0], this->camera->position[2]));
+
+	glUniform3fv(ShaderManager::Instance()->camera_pos_loc, 1, &this->camera->position[0]);
+
 	//update heightmap
 
 	//bind heightmap

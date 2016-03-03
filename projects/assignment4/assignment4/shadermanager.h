@@ -53,6 +53,9 @@ public:
 	GLuint height_scale_loc;
 	GLuint step_size_loc;
 
+	GLuint camera_pos_loc;
+	GLuint uinvLevelsize_loc;
+
 	//map with shaders
 	std::map<std::string, GLuint> shaders;
 private:

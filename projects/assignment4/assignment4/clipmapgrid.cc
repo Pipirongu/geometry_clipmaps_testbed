@@ -14,6 +14,17 @@ ClipmapGrid::ClipmapGrid(unsigned int size, unsigned int levels, float clip_scal
 	this->setup_uniform_buffer();
 	this->setup_vertex_array();
 
+	ShaderManager::Instance()->ChangeShader("clipmaps");
+	std::vector<GLfloat> inv_level_size;
+	float inv_size = 1.0f / (clip_scale * (size * 4 - 1));
+	for (unsigned int i = 0; i < levels; i++)
+	{
+		inv_level_size.push_back(inv_size);
+		inv_size *= 0.5f;
+	}
+
+	glUniform1fv(ShaderManager::Instance()->uinvLevelsize_loc, inv_level_size.size(), &inv_level_size[0]);
+
 	// UBOs must be bound with aligned length and offset, and it varies per vendor.
 	glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uniform_buffer_align);
 }
@@ -38,15 +49,15 @@ void ClipmapGrid::Render(const Matrix44& projection, const Matrix44& view)
 	/* Render Draw List                                                     */
 	/************************************************************************/
 	//Form the mvp matrix from matrices supplies with draw function
-	Matrix44 model_matrix = Matrix44::Translation(Vector3(0, 0, 0));
-	Matrix44 mvp = projection * view * model_matrix;
+	//Matrix44 model_matrix = Matrix44::Translation(Vector3(0, 0, 0));
+	Matrix44 mvp = projection * view;
 
 
-	Matrix44 view_matrix = view;
-	Matrix44 modelview_matrix = view * model_matrix;
+	//Matrix44 view_matrix = view;
+	//Matrix44 modelview_matrix = view * model_matrix;
 
 	//Send matrices to shader uniforms
-	glUniformMatrix4fv(ShaderManager::Instance()->model_loc, 1, GL_TRUE, &model_matrix[0][0]);
+	//glUniformMatrix4fv(ShaderManager::Instance()->model_loc, 1, GL_TRUE, &model_matrix[0][0]);
 	//glUniformMatrix4fv(ShaderManager::Instance()->view_loc, 1, GL_TRUE, &view_matrix[0][0]);
 	//glUniformMatrix4fv(ShaderManager::Instance()->modelview_loc, 1, GL_TRUE, &modelview_matrix[0][0]);
 	glUniformMatrix4fv(ShaderManager::Instance()->mvp_loc, 1, GL_TRUE, &mvp[0][0]);
@@ -678,7 +689,7 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_degenerate_top(InstanceData *in
 
 ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_degenerate_bottom(InstanceData *instances)
 {
-	return get_draw_info_degenerate(instances, degenerate_bottom, Vector2(0.0f, 4 * (size - 1) + 2), Vector2(0.0f, 2.0f));
+	return get_draw_info_degenerate(instances, degenerate_bottom, Vector2(0.0f, 4 * (size - 1)), Vector2(0.0f, 2.0f));
 }
 
 // Only used for cliplevel 1 to encapsulate cliplevel 0.

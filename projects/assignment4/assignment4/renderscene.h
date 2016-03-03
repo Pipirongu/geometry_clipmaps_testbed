@@ -32,7 +32,7 @@
 #define CLIPMAP_LEVELS 10
 
 // Distance between vertices.
-#define CLIPMAP_SCALE 0.25f
+#define CLIPMAP_SCALE 1.f
 
 namespace Graphics
 {
@@ -68,7 +68,6 @@ private:
 	//Nodes
 	Root* root;
 	Camera* camera;
-	Mesh* plane_mesh;
 	Light* light;
 
 	//Clipmapgrid and heightmap :)
@@ -92,7 +91,6 @@ private:
 	RenderScene(const RenderScene&);
 	///Private assignment constructor to prevent creating an instance other than calling the Instance() function
 	RenderScene& operator=(const RenderScene&);
-	void AddPlaneToScene(bool is_kinematic, Vector3 position, float clipmap_scale, float degrees = 0, Vector3 axis = Vector3(1, 1, 1));
 	void RenderPass();
 	void RenderClipmaps();
 	void CameraControls();
