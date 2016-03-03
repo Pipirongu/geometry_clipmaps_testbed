@@ -47,8 +47,8 @@ void ClipmapGrid::Render(const Matrix44& projection, const Matrix44& view)
 
 	//Send matrices to shader uniforms
 	glUniformMatrix4fv(ShaderManager::Instance()->model_loc, 1, GL_TRUE, &model_matrix[0][0]);
-	glUniformMatrix4fv(ShaderManager::Instance()->view_loc, 1, GL_TRUE, &view_matrix[0][0]);
-	glUniformMatrix4fv(ShaderManager::Instance()->modelview_loc, 1, GL_TRUE, &modelview_matrix[0][0]);
+	//glUniformMatrix4fv(ShaderManager::Instance()->view_loc, 1, GL_TRUE, &view_matrix[0][0]);
+	//glUniformMatrix4fv(ShaderManager::Instance()->modelview_loc, 1, GL_TRUE, &modelview_matrix[0][0]);
 	glUniformMatrix4fv(ShaderManager::Instance()->mvp_loc, 1, GL_TRUE, &mvp[0][0]);
 
 
@@ -223,20 +223,6 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	delete[] vertices;
-
-
-	////Block
-	//for (unsigned int z = 0; z < size; z++) // rows
-	//{
-	//	for (unsigned int x = 0; x < size; x++) // cols
-	//	{
-	//		Vector3 vertex1(x, 0, z);
-	//		this->vertices.push_back(vertex1);
-
-	//		//Vector2 uv1(x / (float)width, z / (float)height);
-	//		//this->uvs.push_back(uv1);
-	//	}
-	//}
 }
 
 // Returns number of indices needed to create a triangle stripped mesh using generate_block_indices() below.
@@ -261,14 +247,27 @@ static GLushort *generate_block_indices(GLushort *pi, unsigned int vertex_buffer
 	for (unsigned int z = 0; z < strips; z++)
 	{
 		int step_even = width;
-		int step_odd = ((z & 1) ? -1 : 1) - step_even;
+		int step_odd;
+		//int step_odd = ((z & 1) ? -1 : 1) - step_even;
+		if (z % 2){
+			step_odd = -1 - step_even;
+		}
+		else{
+			step_odd = 1 - step_even;
+		}
 
 		// We don't need the last odd index.
 		// The first index of the next strip will complete this strip.
 		for (unsigned int x = 0; x < 2 * width - 1; x++)
 		{
 			*pi++ = pos;
-			pos += (x & 1) ? step_odd : step_even;
+			//pos += (x & 1) ? step_odd : step_even;
+			if (x % 2){
+				pos += step_odd;
+			}
+			else{
+				pos += step_even;
+			}
 		}
 	}
 	// There is no new strip, so complete the block here.
@@ -433,26 +432,6 @@ void ClipmapGrid::setup_index_buffer(unsigned int size)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	delete[] indices;
-
-	//for (int y = 0; y < size - 1; y++) { //rows
-	//	//Skip the first vertex of the grid(we don't want a degenerate triangle if it's the start or end vertex. Which is why the loop is rows-1)
-	//	if (y > 0) {
-	//		// Degenerate begin: repeat first vertex
-	//		this->indices.push_back(y * size);
-	//	}
-
-	//	for (int x = 0; x < size; x++) { // cols
-	//		// One part of the strip
-	//		this->indices.push_back((y * size) + x);
-	//		this->indices.push_back(((y + 1) * size) + x);
-	//	}
-
-	//	//no skip, adds the last vertex of the strip as a degenerate, which will connect with the next row's degenerate vertex)
-	//	if (y < size - 2) {
-	//		// Degenerate end: repeat last vertex
-	//		this->indices.push_back(((y + 1) * size) + (size - 1));
-	//	}
-	//}
 }
 
 void ClipmapGrid::setup_uniform_buffer()
@@ -664,8 +643,9 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_degenerate(InstanceData *instan
 		// In clipmap level 0, we only have tightly packed N-by-N blocks.
 		// In other levels however, there are horizontal and vertical fixup regions, therefore a different
 		// offset (2 extra texels) is required.
-		if (i > 0)
-		instance.offset += ring_offset * Vector2(1 << i);
+		if (i > 0){
+			instance.offset += ring_offset * Vector2(1 << i);
+		}
 		instance.texture_offset = Vector2::vec_fract((instance.offset / Vector2(1 << i)) * instance.texture_scale);
 		instance.offset *= Vector2(clipmap_scale);
 		instance.scale = clipmap_scale * float(1 << i);

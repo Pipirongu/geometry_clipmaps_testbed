@@ -115,7 +115,7 @@ RenderScene::Open()
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
-		glEnable(GL_CULL_FACE);
+		//glEnable(GL_CULL_FACE);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
 		ShaderManager::Instance()->AddShaderProgram("shaders/simple_vs.glsl", "shaders/simple_fs.glsl", "main");
@@ -154,7 +154,7 @@ RenderScene::Open()
 		//plane
 		int width, height;
 		this->heightmap = new Texture;
-		this->heightmap->LoadHeightmap("textures/heightmap.bmp", width, height);
+		this->heightmap->LoadHeightmap("textures/mountains.png", width, height);
 		this->plane_mesh = new Mesh;
 		//this->plane_mesh->GenerateNestedRegularGrid(width, height);
 		this->plane_mesh->GenerateNestedRegularGrid(15, 15);
@@ -289,9 +289,11 @@ void RenderScene::CameraControls()
 void RenderScene::RenderClipmaps()
 {
 	ShaderManager::Instance()->ChangeShader("clipmaps");
+	//this->clipmaps->update_level_offsets(Vector2(0,0));
 	this->clipmaps->update_level_offsets(Vector2(this->camera->position[0], this->camera->position[2]));
 	//update heightmap
 
+	//bind heightmap
 	this->heightmap->BindHeightmap();
 	this->clipmaps->Render(this->projection, this->view);
 	this->heightmap->Unbind();

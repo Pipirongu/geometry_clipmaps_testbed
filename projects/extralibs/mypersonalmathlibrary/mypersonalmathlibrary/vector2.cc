@@ -217,6 +217,7 @@ Vector2 Vector2::vec_fract(const Vector2& vec)
 	return vec - vec_floor(vec);
 }
 
+// rounds the value downwards to an integer that is not larger than the input
 Vector2 Vector2::vec_floor(const Vector2& vec)
 {
 	Vector2 res;

@@ -3,6 +3,7 @@
 uniform sampler2D height_map;
 
 uniform mat4 mvp;
+uniform mat4 model;
 //uniform vec3 uCameraPos;
 //uniform float uInvLevelSize[10]; // GL doesn't allow unsized array when accessed from non-constant.
 
@@ -37,9 +38,9 @@ void main()
 	vec2 local_offset = aVertex * instance[gl_InstanceID].scale;
 	vec2 pos = instance[gl_InstanceID].offset + local_offset;
 
-	// float level = instance[gl_InstanceID].level;
-	// vec2 tex_offset = (aVertex + 0.5) * instance[gl_InstanceID].texture_scale; // 0.5 offset to sample mid-texel.
-	// vec2 texcoord = instance[gl_InstanceID].texture_offset + tex_offset;
+	float level = instance[gl_InstanceID].level;
+	vec2 tex_offset = (aVertex + 0.5) * instance[gl_InstanceID].texture_scale; // 0.5 offset to sample mid-texel.
+	vec2 texcoord = instance[gl_InstanceID].texture_offset + tex_offset;
 
 	// vec4 height = textureLod(height_map, texcoord, level);
 	//vec2 heights = texture(height_map, vec3(texcoord, level)).rg;
@@ -51,13 +52,18 @@ void main()
 	// float height = mix(heights.x, heights.y, lod_factor);
 
 	//height = clamp(height, HEIGHTMAP_MIN, HEIGHTMAP_MAX); // To ensure frustum culling assumptions are met.
+	
+	vec2 samplingt = vec2(pos.x/4096,pos.y/4096);
+	//vec2 sampling = pos * model;
+	float height = textureLod(height_map, samplingt, level).x;
+	//float height = texture(height_map, samplingt).x;
 
-	vec4 vert = vec4(pos.x, 0, pos.y, 1.0);
+	vec4 vert = vec4(pos.x, 100*height, pos.y, 1.0);
 
 	gl_Position = mvp * vert;
 	
 	frag_debug_color = instance[gl_InstanceID].debug_color;
-	// height_value = height.x;
+	height_value = height.x;
 	
 	//vHeight = height;
 	//vLod = vec2(level, lod_factor);
