@@ -64,7 +64,11 @@ private:
 	std::vector<unsigned int> indices;
 
 	//vao, vbo, ibo, ubo
-	GLuint vao, vertex_buffer, index_buffer, uniform_buffer;
+	GLuint vao_block, vao_vertical, vao_horizontal, vao_trim_full, vao_trim_top_right, vao_trim_bottom_right, vao_trim_bottom_left, vao_trim_top_left, vao_degenerate_left, vao_degenerate_right, vao_degenerate_top, vao_degenerate_bottom;
+	GLuint vertex_buffer_block, vertex_buffer_vertical, vertex_buffer_horizontal, vertex_buffer_trim_full, vertex_buffer_trim_top_right, vertex_buffer_trim_bottom_right, vertex_buffer_trim_bottom_left, vertex_buffer_trim_top_left, vertex_buffer_degenerate_left, vertex_buffer_degenerate_right, vertex_buffer_degenerate_top, vertex_buffer_degenerate_bottom;
+	GLuint index_buffer_block, index_buffer_vertical, index_buffer_horizontal, index_buffer_trim_full, index_buffer_trim_top_right, index_buffer_trim_bottom_right, index_buffer_trim_bottom_left, index_buffer_trim_top_left, index_buffer_degenerate_left, index_buffer_degenerate_right, index_buffer_degenerate_top, index_buffer_degenerate_bottom;
+	GLuint uniform_buffer;
+
 	unsigned int size;
 	unsigned int level_size;
 	unsigned int levels;
@@ -124,6 +128,7 @@ private:
 		size_t uniform_buffer_offset;
 		unsigned int indices;
 		unsigned int instances;
+		GLuint render_vao;
 	};
 	std::vector<DrawInfo> draw_list;
 

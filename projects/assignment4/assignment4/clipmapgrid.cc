@@ -63,13 +63,13 @@ void ClipmapGrid::Render(const Matrix44& projection, const Matrix44& view)
 
 	//! [Placeholder render code]
 	//Bind this mesh VAO
-	glBindVertexArray(this->vao);
+	//glBindVertexArray(this->vao);
 	this->render_draw_list();
 	//Draw the triangles using the index buffer(EBO)
 	//glDrawElements(GL_TRIANGLE_STRIP, this->indices.size(), GL_UNSIGNED_INT, 0);
 	//glDrawArrays(GL_TRIANGLE_STRIP, 0, this->vertices.size());
 	//Unbind the VAO
-	glBindVertexArray(0);
+	//glBindVertexArray(0);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, 0);
 
@@ -120,16 +120,16 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 
 	// See Doxygen for an illustration on how these blocks are laid out to form the terrain.
 
-	unsigned int num_vertices = size * size; // Regular block
+	unsigned int block_num_vertices = size * size; // Regular block
 
 	// Ring fixups (vertical and horiz). The regions are 3-by-N vertices.
-	unsigned int ring_vertices = size * 3;
-	num_vertices += 2 * ring_vertices;
+	unsigned int ring_num_vertices = size * 3;
+	//num_vertices += 2 * ring_vertices;
 
 	// Trim regions are thin stripes which surround blocks from the lower LOD level.
 	// Need (2 * size + 1)-by-2 vertices. One stripe for each four sides are needed.
-	unsigned int trim_vertices = (2 * size + 1) * 2;
-	num_vertices += trim_vertices * 4;
+	unsigned int trim_num_vertices = (2 * size + 1) * 2;
+	//num_vertices += trim_vertices * 4;
 
 	// Degenerate triangles. These are run on the edge between clipmap levels.
 	// These are needed to avoid occasional "missing pixels" between clipmap levels as
@@ -138,21 +138,38 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	// 5 vertices are used per vertex to create a suitable triangle strip.
 	// (This is somewhat redundant, but it simplifies the implementation).
 	// Two different strips are needed for left/right and top/bottom.
-	unsigned int degenerate_vertices = 2 * (size - 1) * 5;
-	num_vertices += degenerate_vertices * 2;
+	unsigned int degenerate_num_vertices = 2*2 * (size - 1) * 5;
+	//num_vertices += degenerate_vertices * 2;
 
-	GLubyte *vertices = new GLubyte[2 * num_vertices];
+	GLubyte *block_vertices = new GLubyte[2 * block_num_vertices];
+	GLubyte *ring_vertical_vertices = new GLubyte[2 * ring_num_vertices];
+	GLubyte *ring_horizontal_vertices = new GLubyte[2 * ring_num_vertices];
+	GLubyte *trim_top_vertices = new GLubyte[2 * trim_num_vertices];
+	GLubyte *trim_right_vertices = new GLubyte[2 * trim_num_vertices];
+	GLubyte *trim_bottom_vertices = new GLubyte[2 * trim_num_vertices];
+	GLubyte *trim_left_vertices = new GLubyte[2 * trim_num_vertices];
+
+	GLubyte *degenerate_vertices = new GLubyte[2 * degenerate_num_vertices];
+
 	//! [Generating vertex buffer]
-	GLubyte *pv = vertices;
+	GLubyte *blockp = block_vertices;
+	GLubyte *ringverticalp = ring_vertical_vertices;
+	GLubyte *ringhorizontalp = ring_horizontal_vertices;
+	GLubyte *trim_topp = trim_top_vertices;
+	GLubyte *trim_rightp = trim_right_vertices;
+	GLubyte *trim_bottomp = trim_bottom_vertices;
+	GLubyte *trim_leftp = trim_left_vertices;
+
+	GLubyte *degeneratep = degenerate_vertices;
 
 	// Block
 	for (unsigned int z = 0; z < size; z++)
 	{
 		for (unsigned int x = 0; x < size; x++)
 		{
-			pv[0] = x;
-			pv[1] = z;
-			pv += 2;
+			blockp[0] = x;
+			blockp[1] = z;
+			blockp += 2;
 		}
 	}
 	//! [Generating vertex buffer]
@@ -162,9 +179,9 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	{
 		for (unsigned int x = 0; x < 3; x++)
 		{
-			pv[0] = x;
-			pv[1] = z;
-			pv += 2;
+			ringverticalp[0] = x;
+			ringverticalp[1] = z;
+			ringverticalp += 2;
 		}
 	}
 
@@ -173,9 +190,9 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	{
 		for (unsigned int x = 0; x < size; x++)
 		{
-			pv[0] = x;
-			pv[1] = z;
-			pv += 2;
+			ringhorizontalp[0] = x;
+			ringhorizontalp[1] = z;
+			ringhorizontalp += 2;
 		}
 	}
 
@@ -185,9 +202,9 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	{
 		for (unsigned int x = 0; x < 2 * size + 1; x++)
 		{
-			pv[0] = x;
-			pv[1] = z;
-			pv += 2;
+			trim_topp[0] = x;
+			trim_topp[1] = z;
+			trim_topp += 2;
 		}
 	}
 
@@ -196,9 +213,9 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	{
 		for (unsigned int z = 0; z < 2 * size + 1; z++)
 		{
-			pv[0] = x + 2 * size - 1;
-			pv[1] = z;
-			pv += 2;
+			trim_rightp[0] = x + 2 * size - 1;
+			trim_rightp[1] = z;
+			trim_rightp += 2;
 		}
 	}
 
@@ -207,9 +224,9 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	{
 		for (unsigned int x = 0; x < 2 * size + 1; x++)
 		{
-			pv[0] = 2 * size - x;
-			pv[1] = z + 2 * size - 1;
-			pv += 2;
+			trim_bottomp[0] = 2 * size - x;
+			trim_bottomp[1] = z + 2 * size - 1;
+			trim_bottomp += 2;
 		}
 	}
 
@@ -218,73 +235,244 @@ void ClipmapGrid::setup_vertex_buffer(unsigned int size)
 	{
 		for (unsigned int z = 0; z < 2 * size + 1; z++)
 		{
-			pv[0] = x;
-			pv[1] = 2 * size - z;
-			pv += 2;
+			trim_leftp[0] = x;
+			trim_leftp[1] = 2 * size - z;
+			trim_leftp += 2;
 		}
 	}
 
-	// Degenerate triangles.
-	// Left, right
-	for (unsigned int y = 0; y < (size - 1) * 2; y++)
-	{
-		pv[0] = 0;
-		pv[1] = y * 2;
-		pv[2] = 0;
-		pv[3] = y * 2;
-		pv[4] = 0;
-		pv[5] = y * 2 + 1;
-		pv[6] = 0;
-		pv[7] = y * 2 + 2;
-		pv[8] = 0;
-		pv[9] = y * 2 + 2;
-		pv += 10;
-	}
+	//// Degenerate triangles.
+	//// Left, right
+	//for (unsigned int y = 0; y < (size - 1) * 2; y++)
+	//{
+	//	pv[0] = 0;
+	//	pv[1] = y * 2;
+	//	pv[2] = 0;
+	//	pv[3] = y * 2;
+	//	pv[4] = 0;
+	//	pv[5] = y * 2 + 1;
+	//	pv[6] = 0;
+	//	pv[7] = y * 2 + 2;
+	//	pv[8] = 0;
+	//	pv[9] = y * 2 + 2;
+	//	pv += 10;
+	//}
 
-	// Top, bottom
-	for (unsigned int x = 0; x < (size - 1) * 2; x++)
-	{
-		pv[0] = x * 2;
-		pv[1] = 0;
-		pv[2] = x * 2;
-		pv[3] = 0;
-		pv[4] = x * 2 + 1;
-		pv[5] = 0;
-		pv[6] = x * 2 + 2;
-		pv[7] = 0;
-		pv[8] = x * 2 + 2;
-		pv[9] = 0;
-		pv += 10;
-	}
+	//// Top, bottom
+	//for (unsigned int x = 0; x < (size - 1) * 2; x++)
+	//{
+	//	pv[0] = x * 2;
+	//	pv[1] = 0;
+	//	pv[2] = x * 2;
+	//	pv[3] = 0;
+	//	pv[4] = x * 2 + 1;
+	//	pv[5] = 0;
+	//	pv[6] = x * 2 + 2;
+	//	pv[7] = 0;
+	//	pv[8] = x * 2 + 2;
+	//	pv[9] = 0;
+	//	pv += 10;
+	//}
 
 	// Right and bottom share vertices with left and top respectively.
 
-	glGenBuffers(1, &vertex_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, 2 * num_vertices * sizeof(GLubyte), vertices, GL_STATIC_DRAW);
+	glGenBuffers(1, &vertex_buffer_block);
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_block);
+	glBufferData(GL_ARRAY_BUFFER, 2 * block_num_vertices * sizeof(GLubyte), block_vertices, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	delete[] vertices;
+	glGenBuffers(1, &vertex_buffer_vertical);
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_vertical);
+	glBufferData(GL_ARRAY_BUFFER, 2 * ring_num_vertices * sizeof(GLubyte), ring_vertical_vertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	glGenBuffers(1, &vertex_buffer_horizontal);
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_horizontal);
+	glBufferData(GL_ARRAY_BUFFER, 2 * ring_num_vertices * sizeof(GLubyte), ring_horizontal_vertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	////Block
-	//for (unsigned int z = 0; z < size; z++) // rows
+	glGenBuffers(1, &vertex_buffer_trim_top);
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_trim_full);
+	glBufferData(GL_ARRAY_BUFFER, 2 * trim_num_vertices * sizeof(GLubyte), trim_vertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glGenBuffers(1, &vertex_buffer_trim_full);
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_trim_full);
+	glBufferData(GL_ARRAY_BUFFER, 2 * trim_num_vertices * sizeof(GLubyte), trim_vertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glGenBuffers(1, &vertex_buffer_trim_full);
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_trim_full);
+	glBufferData(GL_ARRAY_BUFFER, 2 * trim_num_vertices * sizeof(GLubyte), trim_vertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glGenBuffers(1, &vertex_buffer_trim_full);
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_trim_full);
+	glBufferData(GL_ARRAY_BUFFER, 2 * trim_num_vertices * sizeof(GLubyte), trim_vertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	//delete[] vertices;
+
+	//// The ground consists of many smaller tesselated quads.
+	//// These smaller quads can be instanced to stamp out a big area (clipmap) where quads further away from camera
+	//// can be larger, and hence, less detail.
+	//// The grid is completely flat (XZ-plane), but they are offset in Y direction with a heightmap in vertex shader.
+	//// We also need padding/fixup regions to fill the missing space which
+	//// shows up when the clipmap is put together.
+
+	//// See Doxygen for an illustration on how these blocks are laid out to form the terrain.
+
+	//unsigned int num_vertices = size * size; // Regular block
+
+	//// Ring fixups (vertical and horiz). The regions are 3-by-N vertices.
+	//unsigned int ring_vertices = size * 3;
+	//num_vertices += 2 * ring_vertices;
+
+	//// Trim regions are thin stripes which surround blocks from the lower LOD level.
+	//// Need (2 * size + 1)-by-2 vertices. One stripe for each four sides are needed.
+	//unsigned int trim_vertices = (2 * size + 1) * 2;
+	//num_vertices += trim_vertices * 4;
+
+	//// Degenerate triangles. These are run on the edge between clipmap levels.
+	//// These are needed to avoid occasional "missing pixels" between clipmap levels as
+	//// imperfections in precision can cause the terrain to not perfectly overlap at the clipmap level boundary.
+	////
+	//// 5 vertices are used per vertex to create a suitable triangle strip.
+	//// (This is somewhat redundant, but it simplifies the implementation).
+	//// Two different strips are needed for left/right and top/bottom.
+	//unsigned int degenerate_vertices = 2 * (size - 1) * 5;
+	//num_vertices += degenerate_vertices * 2;
+
+	//GLubyte *vertices = new GLubyte[2 * num_vertices];
+	////! [Generating vertex buffer]
+	//GLubyte *pv = vertices;
+
+	//// Block
+	//for (unsigned int z = 0; z < size; z++)
 	//{
-	//	for (unsigned int x = 0; x < size; x++) // cols
+	//	for (unsigned int x = 0; x < size; x++)
 	//	{
-	//		Vector3 vertex1(x, 0, z);
-	//		this->vertices.push_back(vertex1);
-
-	//		//Vector2 uv1(x / (float)width, z / (float)height);
-	//		//this->uvs.push_back(uv1);
+	//		pv[0] = x;
+	//		pv[1] = z;
+	//		pv += 2;
 	//	}
 	//}
+	////! [Generating vertex buffer]
+
+	//// Vertical ring fixup
+	//for (unsigned int z = 0; z < size; z++)
+	//{
+	//	for (unsigned int x = 0; x < 3; x++)
+	//	{
+	//		pv[0] = x;
+	//		pv[1] = z;
+	//		pv += 2;
+	//	}
+	//}
+
+	//// Horizontal ring fixup
+	//for (unsigned int z = 0; z < 3; z++)
+	//{
+	//	for (unsigned int x = 0; x < size; x++)
+	//	{
+	//		pv[0] = x;
+	//		pv[1] = z;
+	//		pv += 2;
+	//	}
+	//}
+
+	//// Full interior trim
+	//// Top
+	//for (unsigned int z = 0; z < 2; z++)
+	//{
+	//	for (unsigned int x = 0; x < 2 * size + 1; x++)
+	//	{
+	//		pv[0] = x;
+	//		pv[1] = z;
+	//		pv += 2;
+	//	}
+	//}
+
+	//// Right
+	//for (int x = 1; x >= 0; x--)
+	//{
+	//	for (unsigned int z = 0; z < 2 * size + 1; z++)
+	//	{
+	//		pv[0] = x + 2 * size - 1;
+	//		pv[1] = z;
+	//		pv += 2;
+	//	}
+	//}
+
+	//// Bottom
+	//for (int z = 1; z >= 0; z--)
+	//{
+	//	for (unsigned int x = 0; x < 2 * size + 1; x++)
+	//	{
+	//		pv[0] = 2 * size - x;
+	//		pv[1] = z + 2 * size - 1;
+	//		pv += 2;
+	//	}
+	//}
+
+	//// Left
+	//for (unsigned int x = 0; x < 2; x++)
+	//{
+	//	for (unsigned int z = 0; z < 2 * size + 1; z++)
+	//	{
+	//		pv[0] = x;
+	//		pv[1] = 2 * size - z;
+	//		pv += 2;
+	//	}
+	//}
+
+	//// Degenerate triangles.
+	//// Left, right
+	//for (unsigned int y = 0; y < (size - 1) * 2; y++)
+	//{
+	//	pv[0] = 0;
+	//	pv[1] = y * 2;
+	//	pv[2] = 0;
+	//	pv[3] = y * 2;
+	//	pv[4] = 0;
+	//	pv[5] = y * 2 + 1;
+	//	pv[6] = 0;
+	//	pv[7] = y * 2 + 2;
+	//	pv[8] = 0;
+	//	pv[9] = y * 2 + 2;
+	//	pv += 10;
+	//}
+
+	//// Top, bottom
+	//for (unsigned int x = 0; x < (size - 1) * 2; x++)
+	//{
+	//	pv[0] = x * 2;
+	//	pv[1] = 0;
+	//	pv[2] = x * 2;
+	//	pv[3] = 0;
+	//	pv[4] = x * 2 + 1;
+	//	pv[5] = 0;
+	//	pv[6] = x * 2 + 2;
+	//	pv[7] = 0;
+	//	pv[8] = x * 2 + 2;
+	//	pv[9] = 0;
+	//	pv += 10;
+	//}
+
+	//// Right and bottom share vertices with left and top respectively.
+
+	//glGenBuffers(1, &vertex_buffer);
+	//glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+	//glBufferData(GL_ARRAY_BUFFER, 2 * num_vertices * sizeof(GLubyte), vertices, GL_STATIC_DRAW);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	//delete[] vertices;
 }
 
 // Returns number of indices needed to create a triangle stripped mesh using generate_block_indices() below.
 static unsigned int block_index_count(unsigned int width, unsigned int height)
 {
-	//return (height - 1) * (2 * width) + (height - 2);
+	//return (height - 1) * (2 * width)+(height - 2);
 	unsigned int strips = height - 1;
 	return strips * (2 * width - 1) + 1;
 }
@@ -294,8 +482,10 @@ static GLushort *generate_block_indices(GLushort *pi, unsigned int vertex_buffer
 	unsigned int width, unsigned int height)
 {
 	// Stamp out triangle strips back and forth.
-	int pos = vertex_buffer_offset;
+	int pos = 0;
 	unsigned int strips = height - 1;
+
+	int sizeCount = 0;
 
 	//for (int z = 0; z < height - 1; z++)
 	//{
@@ -308,11 +498,14 @@ static GLushort *generate_block_indices(GLushort *pi, unsigned int vertex_buffer
 	//		{
 	//			*pi++ = x + (z * width);
 	//			*pi++ = x + (z * width) + width;
+	//			//sizeCount++;
+	//			//sizeCount++;
 	//		}
 	//		// Insert degenerate vertex if this isn't the last row
 	//		if (z != height - 2)
 	//		{
 	//			*pi++ = --x + (z * width);
+	//			sizeCount++;
 	//		}
 	//	}
 	//	else
@@ -323,11 +516,14 @@ static GLushort *generate_block_indices(GLushort *pi, unsigned int vertex_buffer
 	//		{
 	//			*pi++ = x + (z * width);
 	//			*pi++ = x + (z * width) + width;
+	//			//sizeCount++;
+	//			//sizeCount++;
 	//		}
 	//		// Insert degenerate vertex if this isn't the last row
 	//		if (z != height - 2)
 	//		{
 	//			*pi++ = ++x + (z * width);
+	//			sizeCount++;
 	//		}
 	//	}
 	//}
@@ -353,6 +549,7 @@ static GLushort *generate_block_indices(GLushort *pi, unsigned int vertex_buffer
 		for (unsigned int x = 0; x < 2 * width - 1; x++)
 		{
 			*pi++ = pos;
+			sizeCount++;
 			//pos += (x & 1) ? step_odd : step_even;
 			if (x % 2){
 				pos += step_odd;
@@ -364,6 +561,7 @@ static GLushort *generate_block_indices(GLushort *pi, unsigned int vertex_buffer
 	}
 	// There is no new strip, so complete the block here.
 	*pi++ = pos;
+	sizeCount++;
 
 	// Return updated index buffer pointer.
 	// More explicit than taking reference to pointer.
@@ -395,135 +593,152 @@ void ClipmapGrid::setup_index_buffer(unsigned int size)
 		4 * trim_top_left.count +
 		4 * degenerate_left.count;
 
-	GLushort *indices = new GLushort[num_indices];
-	GLushort *pi = indices;
+	GLushort *block_indices = new GLushort[block.count];
+	GLushort *vertical_indices = new GLushort[vertical.count];
+	GLushort *horizontal_indices = new GLushort[horizontal.count];
+	GLushort *trim_full_indices = new GLushort[trim_full.count];
 
+	GLushort *pi = 0;
 	// Main block
-	block.offset = pi - indices;
-	pi = generate_block_indices(pi, vertex_buffer_offset, size, size);
+	//block.offset = pi - indices;
+	pi = generate_block_indices(block_indices, vertex_buffer_offset, size, size);
 	vertex_buffer_offset += size * size;
 
+	//pi = vertical_indices;
 	// Vertical fixup
-	vertical.offset = pi - indices;
-	pi = generate_block_indices(pi, vertex_buffer_offset, 3, size);
+	//vertical.offset = pi - indices;
+	pi = generate_block_indices(vertical_indices, vertex_buffer_offset, 3, size);
 	vertex_buffer_offset += 3 * size;
 
+	//pi = horizontal_indices;
 	// Horizontal fixup
-	horizontal.offset = pi - indices;
-	pi = generate_block_indices(pi, vertex_buffer_offset, size, 3);
+	//horizontal.offset = pi - indices;
+	pi = generate_block_indices(horizontal_indices, vertex_buffer_offset, size, 3);
 	vertex_buffer_offset += 3 * size;
 
 	// Full interior trim
 	// All trims can be run after each other.
 	// The vertex buffer is generated such that this creates a "ring".
 	// The full trim is only used to connect clipmap level 0 to level 1. See Doxygen for more detail.
-	trim_full.offset = pi - indices;
+	//trim_full.offset = pi - indices;
 	unsigned int full_trim_offset = vertex_buffer_offset;
 	unsigned int trim_vertices = (2 * size + 1) * 2;
-	pi = generate_block_indices(pi, full_trim_offset, 2 * size + 1, 2); // Top
-	full_trim_offset += trim_vertices;
-	pi = generate_block_indices(pi, full_trim_offset, 2 * size + 1, 2); // Right
-	full_trim_offset += trim_vertices;
-	pi = generate_block_indices(pi, full_trim_offset, 2 * size + 1, 2); // Bottom
-	full_trim_offset += trim_vertices;
-	pi = generate_block_indices(pi, full_trim_offset, 2 * size + 1, 2); // Left
-	full_trim_offset += trim_vertices;
+	//pi = generate_block_indices(trim_full_indices, full_trim_offset, 2 * size + 1, 2); // Top
+	//full_trim_offset += trim_vertices;
+	//pi = generate_block_indices(trim_full_indices, full_trim_offset, 2 * size + 1, 2); // Right
+	//full_trim_offset += trim_vertices;
+	//pi = generate_block_indices(trim_full_indices, full_trim_offset, 2 * size + 1, 2); // Bottom
+	//full_trim_offset += trim_vertices;
+	//pi = generate_block_indices(trim_full_indices, full_trim_offset, 2 * size + 1, 2); // Left
+	//full_trim_offset += trim_vertices;
 
-	// Top-right interior trim
-	// This is a half ring (L-shaped).
-	trim_top_right.offset = pi - indices;
-	pi = generate_block_indices(pi, vertex_buffer_offset, 2 * size + 1, 2); // Top
-	pi = generate_block_indices(pi, vertex_buffer_offset + (2 * size + 1) * 2, 2 * size + 1, 2); // Right
-	vertex_buffer_offset += trim_vertices;
+	//// Top-right interior trim
+	//// This is a half ring (L-shaped).
+	//trim_top_right.offset = pi - indices;
+	//pi = generate_block_indices(pi, vertex_buffer_offset, 2 * size + 1, 2); // Top
+	//pi = generate_block_indices(pi, vertex_buffer_offset + (2 * size + 1) * 2, 2 * size + 1, 2); // Right
+	//vertex_buffer_offset += trim_vertices;
 
-	// Right-bottom interior trim
-	// This is a half ring (L-shaped).
-	trim_bottom_right.offset = pi - indices;
-	pi = generate_block_indices(pi, vertex_buffer_offset, 2 * size + 1, 2); // Right
-	pi = generate_block_indices(pi, vertex_buffer_offset + (2 * size + 1) * 2, 2 * size + 1, 2); // Bottom
-	vertex_buffer_offset += trim_vertices;
+	//// Right-bottom interior trim
+	//// This is a half ring (L-shaped).
+	//trim_bottom_right.offset = pi - indices;
+	//pi = generate_block_indices(pi, vertex_buffer_offset, 2 * size + 1, 2); // Right
+	//pi = generate_block_indices(pi, vertex_buffer_offset + (2 * size + 1) * 2, 2 * size + 1, 2); // Bottom
+	//vertex_buffer_offset += trim_vertices;
 
-	// Bottom-left interior trim
-	// This is a half ring (L-shaped).
-	trim_bottom_left.offset = pi - indices;
-	pi = generate_block_indices(pi, vertex_buffer_offset, 2 * size + 1, 2); // Bottom
-	pi = generate_block_indices(pi, vertex_buffer_offset + (2 * size + 1) * 2, 2 * size + 1, 2); // Left
-	vertex_buffer_offset += trim_vertices;
+	//// Bottom-left interior trim
+	//// This is a half ring (L-shaped).
+	//trim_bottom_left.offset = pi - indices;
+	//pi = generate_block_indices(pi, vertex_buffer_offset, 2 * size + 1, 2); // Bottom
+	//pi = generate_block_indices(pi, vertex_buffer_offset + (2 * size + 1) * 2, 2 * size + 1, 2); // Left
+	//vertex_buffer_offset += trim_vertices;
 
-	// Left-top interior trim
-	// This is a half ring (L-shaped).
-	trim_top_left.offset = pi - indices;
-	pi = generate_block_indices(pi, vertex_buffer_offset, 2 * size + 1, 2); // Left
-	pi = generate_block_indices(pi, vertex_buffer_offset - 6 * (2 * size + 1), 2 * size + 1, 2); // Top
-	vertex_buffer_offset += trim_vertices;
+	//// Left-top interior trim
+	//// This is a half ring (L-shaped).
+	//trim_top_left.offset = pi - indices;
+	//pi = generate_block_indices(pi, vertex_buffer_offset, 2 * size + 1, 2); // Left
+	//pi = generate_block_indices(pi, vertex_buffer_offset - 6 * (2 * size + 1), 2 * size + 1, 2); // Top
+	//vertex_buffer_offset += trim_vertices;
 
-	// One of the trim regions will be used to connect level N with level N + 1.
+	//// One of the trim regions will be used to connect level N with level N + 1.
 
-	// Degenerates. Left and right share vertices (with different offsets in vertex shader). Top and bottom share.
-	// Left
-	degenerate_left.offset = pi - indices;
-	for (unsigned int z = 0; z < (size - 1) * 2; z++)
-	{
-		pi[0] = (5 * z) + 0 + vertex_buffer_offset;
-		pi[1] = (5 * z) + 1 + vertex_buffer_offset;
-		pi[2] = (5 * z) + 2 + vertex_buffer_offset;
-		pi[3] = (5 * z) + 3 + vertex_buffer_offset;
-		pi[4] = (5 * z) + 4 + vertex_buffer_offset;
-		pi[5] = (5 * z) + 4 + vertex_buffer_offset;
-		pi += 6;
-	}
+	//// Degenerates. Left and right share vertices (with different offsets in vertex shader). Top and bottom share.
+	//// Left
+	//degenerate_left.offset = pi - indices;
+	//for (unsigned int z = 0; z < (size - 1) * 2; z++)
+	//{
+	//	pi[0] = (5 * z) + 0 + vertex_buffer_offset;
+	//	pi[1] = (5 * z) + 1 + vertex_buffer_offset;
+	//	pi[2] = (5 * z) + 2 + vertex_buffer_offset;
+	//	pi[3] = (5 * z) + 3 + vertex_buffer_offset;
+	//	pi[4] = (5 * z) + 4 + vertex_buffer_offset;
+	//	pi[5] = (5 * z) + 4 + vertex_buffer_offset;
+	//	pi += 6;
+	//}
 
-	// Right
-	degenerate_right.offset = pi - indices;
-	unsigned int start_z = (size - 1) * 2 - 1;
-	for (unsigned int z = 0; z < (size - 1) * 2; z++)
-	{
-		// Windings are in reverse order on this side.
-		pi[0] = (5 * (start_z - z)) + 4 + vertex_buffer_offset;
-		pi[1] = (5 * (start_z - z)) + 3 + vertex_buffer_offset;
-		pi[2] = (5 * (start_z - z)) + 2 + vertex_buffer_offset;
-		pi[3] = (5 * (start_z - z)) + 1 + vertex_buffer_offset;
-		pi[4] = (5 * (start_z - z)) + 0 + vertex_buffer_offset;
-		pi[5] = (5 * (start_z - z)) + 0 + vertex_buffer_offset;
-		pi += 6;
-	}
+	//// Right
+	//degenerate_right.offset = pi - indices;
+	//unsigned int start_z = (size - 1) * 2 - 1;
+	//for (unsigned int z = 0; z < (size - 1) * 2; z++)
+	//{
+	//	// Windings are in reverse order on this side.
+	//	pi[0] = (5 * (start_z - z)) + 4 + vertex_buffer_offset;
+	//	pi[1] = (5 * (start_z - z)) + 3 + vertex_buffer_offset;
+	//	pi[2] = (5 * (start_z - z)) + 2 + vertex_buffer_offset;
+	//	pi[3] = (5 * (start_z - z)) + 1 + vertex_buffer_offset;
+	//	pi[4] = (5 * (start_z - z)) + 0 + vertex_buffer_offset;
+	//	pi[5] = (5 * (start_z - z)) + 0 + vertex_buffer_offset;
+	//	pi += 6;
+	//}
 
-	vertex_buffer_offset += (size - 1) * 2 * 5;
+	//vertex_buffer_offset += (size - 1) * 2 * 5;
 
-	// Top
-	degenerate_top.offset = pi - indices;
-	for (unsigned int x = 0; x < (size - 1) * 2; x++)
-	{
-		pi[0] = (5 * x) + 0 + vertex_buffer_offset;
-		pi[1] = (5 * x) + 1 + vertex_buffer_offset;
-		pi[2] = (5 * x) + 2 + vertex_buffer_offset;
-		pi[3] = (5 * x) + 3 + vertex_buffer_offset;
-		pi[4] = (5 * x) + 4 + vertex_buffer_offset;
-		pi[5] = (5 * x) + 4 + vertex_buffer_offset;
-		pi += 6;
-	}
+	//// Top
+	//degenerate_top.offset = pi - indices;
+	//for (unsigned int x = 0; x < (size - 1) * 2; x++)
+	//{
+	//	pi[0] = (5 * x) + 0 + vertex_buffer_offset;
+	//	pi[1] = (5 * x) + 1 + vertex_buffer_offset;
+	//	pi[2] = (5 * x) + 2 + vertex_buffer_offset;
+	//	pi[3] = (5 * x) + 3 + vertex_buffer_offset;
+	//	pi[4] = (5 * x) + 4 + vertex_buffer_offset;
+	//	pi[5] = (5 * x) + 4 + vertex_buffer_offset;
+	//	pi += 6;
+	//}
 
-	// Bottom
-	degenerate_bottom.offset = pi - indices;
-	unsigned int start_x = (size - 1) * 2 - 1;
-	for (unsigned int x = 0; x < (size - 1) * 2; x++)
-	{
-		// Windings are in reverse order on this side.
-		pi[0] = (5 * (start_x - x)) + 4 + vertex_buffer_offset;
-		pi[1] = (5 * (start_x - x)) + 3 + vertex_buffer_offset;
-		pi[2] = (5 * (start_x - x)) + 2 + vertex_buffer_offset;
-		pi[3] = (5 * (start_x - x)) + 1 + vertex_buffer_offset;
-		pi[4] = (5 * (start_x - x)) + 0 + vertex_buffer_offset;
-		pi[5] = (5 * (start_x - x)) + 0 + vertex_buffer_offset;
-		pi += 6;
-	}
+	//// Bottom
+	//degenerate_bottom.offset = pi - indices;
+	//unsigned int start_x = (size - 1) * 2 - 1;
+	//for (unsigned int x = 0; x < (size - 1) * 2; x++)
+	//{
+	//	// Windings are in reverse order on this side.
+	//	pi[0] = (5 * (start_x - x)) + 4 + vertex_buffer_offset;
+	//	pi[1] = (5 * (start_x - x)) + 3 + vertex_buffer_offset;
+	//	pi[2] = (5 * (start_x - x)) + 2 + vertex_buffer_offset;
+	//	pi[3] = (5 * (start_x - x)) + 1 + vertex_buffer_offset;
+	//	pi[4] = (5 * (start_x - x)) + 0 + vertex_buffer_offset;
+	//	pi[5] = (5 * (start_x - x)) + 0 + vertex_buffer_offset;
+	//	pi += 6;
+	//}
 
-	glGenBuffers(1, &index_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, num_indices * sizeof(GLushort), indices, GL_STATIC_DRAW);
+	glGenBuffers(1, &index_buffer_block);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_block);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, block.count * sizeof(GLushort), block_indices, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	delete[] indices;
+	//////////////////////////////////////////////////////////////////////////
+	glGenBuffers(1, &index_buffer_vertical);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_vertical);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertical.count * sizeof(GLushort), vertical_indices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	//////////////////////////////////////////////////////////////////////////
+	glGenBuffers(1, &index_buffer_horizontal);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_horizontal);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, horizontal.count * sizeof(GLushort), horizontal_indices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	//delete[] indices;
 
 	//for (int y = 0; y < size - 1; y++) { //rows
 	//	//Skip the first vertex of the grid(we don't want a degenerate triangle if it's the start or end vertex. Which is why the loop is rows-1)
@@ -564,10 +779,10 @@ void ClipmapGrid::setup_uniform_buffer()
 
 void ClipmapGrid::setup_vertex_array()
 {
-	glGenVertexArrays(1, &this->vao);
-	glBindVertexArray(this->vao);
-	glBindBuffer(GL_ARRAY_BUFFER, this->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->index_buffer);
+	glGenVertexArrays(1, &this->vao_block);
+	glBindVertexArray(this->vao_block);
+	glBindBuffer(GL_ARRAY_BUFFER, this->vertex_buffer_block);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->index_buffer_block);
 
 	glVertexAttribPointer(LOCATION_VERTEX, 2, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(LOCATION_VERTEX);
@@ -576,6 +791,47 @@ void ClipmapGrid::setup_vertex_array()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	// Element array buffer state is part of the vertex array object, have to unbind it after the vertex array.
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	//////////////////////////////////////////////////////////////////////////
+	glGenVertexArrays(1, &this->vao_vertical);
+	glBindVertexArray(this->vao_vertical);
+	glBindBuffer(GL_ARRAY_BUFFER, this->vertex_buffer_vertical);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->index_buffer_vertical);
+
+	glVertexAttribPointer(LOCATION_VERTEX, 2, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(LOCATION_VERTEX);
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	// Element array buffer state is part of the vertex array object, have to unbind it after the vertex array.
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	//////////////////////////////////////////////////////////////////////////
+	glGenVertexArrays(1, &this->vao_horizontal);
+	glBindVertexArray(this->vao_horizontal);
+	glBindBuffer(GL_ARRAY_BUFFER, this->vertex_buffer_horizontal);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->index_buffer_horizontal);
+
+	glVertexAttribPointer(LOCATION_VERTEX, 2, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(LOCATION_VERTEX);
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	// Element array buffer state is part of the vertex array object, have to unbind it after the vertex array.
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	//glGenVertexArrays(1, &this->vao);
+	//glBindVertexArray(this->vao);
+	//glBindBuffer(GL_ARRAY_BUFFER, this->vertex_buffer);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->index_buffer);
+
+	//glVertexAttribPointer(LOCATION_VERTEX, 2, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
+	//glEnableVertexAttribArray(LOCATION_VERTEX);
+
+	//glBindVertexArray(0);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//// Element array buffer state is part of the vertex array object, have to unbind it after the vertex array.
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 //! [Snapping clipmap level to a grid]
@@ -1022,14 +1278,17 @@ void ClipmapGrid::update_draw_list()
 
 	// Main blocks
 	info = get_draw_info_blocks(buffer_offset(data, uniform_buffer_offset)); //buffer_offset typecast instance pointer to char pointer and offsets it. It's PerInstanceData array in shader that gets modified.
+	info.render_vao = vao_block;
 	update_draw_list(info, uniform_buffer_offset);
 
 	// Vertical ring fixups
 	info = get_draw_info_vert_fixup(buffer_offset(data, uniform_buffer_offset));
+	info.render_vao = vao_vertical;
 	update_draw_list(info, uniform_buffer_offset);
 
 	// Horizontal ring fixups
 	info = get_draw_info_horiz_fixup(buffer_offset(data, uniform_buffer_offset));
+	info.render_vao = vao_horizontal;
 	update_draw_list(info, uniform_buffer_offset);
 
 	/************************************************************************/
@@ -1051,25 +1310,25 @@ void ClipmapGrid::update_draw_list()
 	//info = get_draw_info_degenerate_bottom(buffer_offset(data, uniform_buffer_offset));
 	//update_draw_list(info, uniform_buffer_offset);
 
-	// Full trim
-	info = get_draw_info_trim_full(buffer_offset(data, uniform_buffer_offset));
-	update_draw_list(info, uniform_buffer_offset);
+	//// Full trim
+	//info = get_draw_info_trim_full(buffer_offset(data, uniform_buffer_offset));
+	//update_draw_list(info, uniform_buffer_offset);
 
-	// Top-right trim
-	info = get_draw_info_trim_top_right(buffer_offset(data, uniform_buffer_offset));
-	update_draw_list(info, uniform_buffer_offset);
+	//// Top-right trim
+	//info = get_draw_info_trim_top_right(buffer_offset(data, uniform_buffer_offset));
+	//update_draw_list(info, uniform_buffer_offset);
 
-	// Top-left trim
-	info = get_draw_info_trim_top_left(buffer_offset(data, uniform_buffer_offset));
-	update_draw_list(info, uniform_buffer_offset);
+	//// Top-left trim
+	//info = get_draw_info_trim_top_left(buffer_offset(data, uniform_buffer_offset));
+	//update_draw_list(info, uniform_buffer_offset);
 
-	// Bottom-right trim
-	info = get_draw_info_trim_bottom_right(buffer_offset(data, uniform_buffer_offset));
-	update_draw_list(info, uniform_buffer_offset);
+	//// Bottom-right trim
+	//info = get_draw_info_trim_bottom_right(buffer_offset(data, uniform_buffer_offset));
+	//update_draw_list(info, uniform_buffer_offset);
 
-	// Bottom-left trim
-	info = get_draw_info_trim_bottom_left(buffer_offset(data, uniform_buffer_offset));
-	update_draw_list(info, uniform_buffer_offset);
+	//// Bottom-left trim
+	//info = get_draw_info_trim_bottom_left(buffer_offset(data, uniform_buffer_offset));
+	//update_draw_list(info, uniform_buffer_offset);
 
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
 }
@@ -1079,12 +1338,14 @@ void ClipmapGrid::render_draw_list()
 	for (std::vector<DrawInfo>::const_iterator itr = draw_list.begin(); itr != draw_list.end(); ++itr)
 	{
 		if (itr->instances){	
+			glBindVertexArray(itr->render_vao);
 			// Bind uniform buffer at same binding point as in shader
 			//glBindBufferBase(GL_UNIFORM_BUFFER, 0, uniform_buffer);
 			glBindBufferRange(GL_UNIFORM_BUFFER, 0, uniform_buffer, itr->uniform_buffer_offset, realign_offset(itr->instances * sizeof(InstanceData), uniform_buffer_align));
 
 			// Draw all instances.
-			glDrawElementsInstanced(GL_TRIANGLE_STRIP, itr->indices, GL_UNSIGNED_SHORT, reinterpret_cast<const GLvoid*>(itr->index_buffer_offset * sizeof(GLushort)), itr->instances);
+			glDrawElementsInstanced(GL_TRIANGLE_STRIP, itr->indices, GL_UNSIGNED_SHORT, 0, itr->instances);
+			glBindVertexArray(0);
 		}
 	}
 }
