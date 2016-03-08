@@ -24,8 +24,8 @@
 #include <limits>
 #include "clipmapgrid.h"
 
-// Sets the size of clipmap blocks, NxN vertices per block. Should be power-of-two and no bigger than 64.
-// A clipmap-level is organized roughly as 4x4 blocks with some padding. A clipmap level is a (4N-1) * (4N-1) grid.
+// Sets the size of clipmap blocks, MxM vertices per block. Should be power-of-two. M is based on 
+// a clipmap level is (4M-1) * (4M-1) grid.
 #define CLIPMAP_SIZE 64
 
 // Number of LOD levels for clipmap.

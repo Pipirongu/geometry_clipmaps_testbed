@@ -10,8 +10,6 @@ uniform float uInvLevelSize[10]; // GL doesn't allow unsized array when accessed
 struct PerInstanceData
 {
 	vec2 offset; // World-space offset in XZ plane.
-	vec2 texture_scale;
-	vec2 texture_offset; // Same as for world-space offset/scale, just for texture coordinates
 	float scale; // Scaling factor for vertex offsets (per-instance)
 	float level; // lod-level to use when sampling heightmap
 	vec3 debug_color;

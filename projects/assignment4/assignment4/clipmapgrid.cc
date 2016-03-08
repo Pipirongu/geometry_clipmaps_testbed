@@ -550,7 +550,6 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_horiz_fixup(InstanceData *insta
 		// Left side horizontal fixup region.
 		// Texel coordinates are derived by just dividing the world space offset with texture size.
 		// The 0.5 texel offset required to sample exactly at the texel center is done in vertex shader.
-		instance.texture_scale = 1.0f / level_size;
 		instance.scale = clipmap_scale * float(1 << i);
 		instance.level = i;
 
@@ -559,7 +558,6 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_horiz_fixup(InstanceData *insta
 		// Avoid texture coordinates which are very large as this can be difficult for the texture sampler
 		// to handle (float precision). Since we use GL_REPEAT, fract() does not change the result.
 		// Scale the offset down by 2^level first to get the appropriate texel.
-		instance.texture_offset = Vector2::vec_fract((instance.offset / Vector2(1 << i)) * instance.texture_scale);
 		instance.offset *= Vector2(clipmap_scale);
 
 		// Only add the instance if it's visible.
@@ -572,7 +570,6 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_horiz_fixup(InstanceData *insta
 		// Right side horizontal fixup region.
 		instance.offset = level_offsets[i];
 		instance.offset += Vector2(3 * (size - 1) + 2, 2 * (size - 1)) * Vector2(1 << i);
-		instance.texture_offset = Vector2::vec_fract((instance.offset / Vector2(1 << i)) * instance.texture_scale);
 		instance.offset *= Vector2(clipmap_scale);
 
 		// Only add the instance if it's visible.
@@ -601,13 +598,11 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_vert_fixup(InstanceData *instan
 	for (unsigned int i = 1; i < levels; i++)
 	{
 		// Top region
-		instance.texture_scale = 1.0f / level_size;
 		instance.scale = clipmap_scale * float(1 << i);
 		instance.level = i;
 
 		instance.offset = level_offsets[i];
 		instance.offset += Vector2(2 * (size - 1), 0) * Vector2(1 << i);
-		instance.texture_offset = Vector2::vec_fract((instance.offset / Vector2(1 << i)) * instance.texture_scale);
 		instance.offset *= Vector2(clipmap_scale);
 
 		//if (intersects_frustum(instance.offset, vertical.range, i))
@@ -619,7 +614,6 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_vert_fixup(InstanceData *instan
 		// Bottom region
 		instance.offset = level_offsets[i];
 		instance.offset += Vector2(2 * (size - 1), 3 * (size - 1) + 2) * Vector2(1 << i);
-		instance.texture_offset = Vector2::vec_fract((instance.offset / Vector2(1 << i)) * instance.texture_scale);
 		instance.offset *= Vector2(clipmap_scale);
 
 		//if (intersects_frustum(instance.offset, vertical.range, i))
@@ -641,7 +635,6 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_degenerate(InstanceData *instan
 
 	InstanceData instance;
 	instance.debug_color = Vector3(0, 0, 1);
-	instance.texture_scale = 1.0f / level_size;
 
 	// No need to connect the last clipmap level to next level (there is none).
 	for (unsigned int i = 0; i < levels - 1; i++)
@@ -657,7 +650,6 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_degenerate(InstanceData *instan
 		if (i > 0){
 			instance.offset += ring_offset * Vector2(1 << i);
 		}
-		instance.texture_offset = Vector2::vec_fract((instance.offset / Vector2(1 << i)) * instance.texture_scale);
 		instance.offset *= Vector2(clipmap_scale);
 		instance.scale = clipmap_scale * float(1 << i);
 
@@ -702,11 +694,9 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_trim_full(InstanceData *instanc
 
 	InstanceData instance;
 	instance.debug_color = Vector3(1, 1, 0);
-	instance.texture_scale = 1.0f / level_size;
 	instance.level = 1;
 	instance.offset = level_offsets[1];
 	instance.offset += Vector2((size - 1) << 1);
-	instance.texture_offset = Vector2::vec_fract((instance.offset / Vector2(1 << 1)) * instance.texture_scale);
 	instance.offset *= Vector2(clipmap_scale);
 	instance.scale = clipmap_scale * float(1 << 1);
 
@@ -743,11 +733,9 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_trim(InstanceData *instances, c
 
 		InstanceData instance;
 		instance.debug_color = Vector3(1, 1, 0);
-		instance.texture_scale = 1.0f / level_size;
 		instance.level = i;
 		instance.offset = level_offsets[i];
 		instance.offset += Vector2((size - 1) << i);
-		instance.texture_offset = Vector2::vec_fract((instance.offset / Vector2(1 << i)) * instance.texture_scale);
 		instance.offset *= Vector2(clipmap_scale);
 		instance.scale = clipmap_scale * float(1 << i);
 
@@ -815,7 +803,6 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_blocks(InstanceData *instances)
 	InstanceData instance;
 	instance.debug_color = Vector3(1, 0, 0);
 	instance.scale = clipmap_scale;
-	instance.texture_scale = 1.0f / level_size;
 
 	for (unsigned int z = 0; z < 4; z++)
 	{
@@ -824,7 +811,6 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_blocks(InstanceData *instances)
 			instance.level = 0;
 			instance.offset = level_offsets[0];
 			instance.offset += Vector2(x, z) * Vector2(size - 1);
-			instance.texture_offset = Vector2::vec_fract(instance.offset * instance.texture_scale);
 			instance.offset *= Vector2(clipmap_scale);
 
 			//if (intersects_frustum(instance.offset, block.range, 0))
@@ -839,7 +825,6 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_blocks(InstanceData *instances)
 	// skip these.
 	for (unsigned int i = 1; i < levels; i++)
 	{
-		instance.texture_scale = 1.0f / level_size;
 
 		for (unsigned int z = 0; z < 4; z++)
 		{
@@ -863,7 +848,6 @@ ClipmapGrid::DrawInfo ClipmapGrid::get_draw_info_blocks(InstanceData *instances)
 				if (z >= 2)
 					instance.offset.y += 2 << i;
 
-				instance.texture_offset = Vector2::vec_fract((instance.offset / Vector2(1 << i)) * instance.texture_scale);
 				instance.offset *= Vector2(clipmap_scale);
 
 				//if (intersects_frustum(instance.offset, block.range, i))

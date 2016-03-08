@@ -53,8 +53,6 @@ private:
 	struct InstanceData
 	{
 		Vector2 offset; // Offset of the block in XZ plane (world space). This is prescaled.
-		Vector2 texture_scale; // Scale factor of local offsets (vertex coordinates) translated into texture coordinates.
-		Vector2 texture_offset; // Offset for texture coordinates, similar to offset. Also prescaled.
 		float scale; // Scale factor of local offsets (vertex coordinates).
 		float level; // Clipmap LOD level of block.
 		Vector3 debug_color;

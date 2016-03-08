@@ -107,7 +107,7 @@ RenderScene::Open()
 
 	if (this->window->Open())
 	{
-		glfwSwapInterval(1);
+		glfwSwapInterval(-1);
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
